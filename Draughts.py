@@ -13,8 +13,6 @@ WHITE_SQUARE='_'
 
 SquareSize=50
 
-CWIDTH=400
-BoardSize=400
 PieceDiameter=23
 
 
@@ -303,8 +301,5 @@ class Draughts(Game):
         return p1p-p2p
 
         
-def location(x):
-    return  x*SquareSize+SquareSize/2
-
 
       
