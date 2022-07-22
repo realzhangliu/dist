@@ -1,36 +1,45 @@
 from multiprocessing import connection
+from turtle import pos
 import pygame
 import os
 from GI import *
 from Draughts import *
+from AIPlayers import *
 
 
+#pygame init
+pygame.init()
 pygame.font.init()
-pygame.mixer.init()
-
 WIDTH, HEIGHT = 800, 400
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
 pygame.display.set_caption("Draughts with AI")
+FPS = 60
+WIN = pygame.display.set_mode((WIDTH, HEIGHT))
+HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
 
-WHITE = (255, 255, 255)
-BLACK = (0, 0, 0)
-RED = (255, 0, 0)
+#game init
+WHITE = (240, 240, 240)
+BOARD=(180,180,180)
+BLACK = (39, 39, 39)
+RED = (154, 34, 20)
 YELLOW = (255, 255, 0)
 GREY=(90,90,90)
-
 SQUARE_SIZE=50
-BORDER = pygame.Rect(WIDTH//2 - 5, 0, 10, HEIGHT)
+PIECE_RADIUS=50
 
-#BULLET_HIT_SOUND = pygame.mixer.Sound('Assets/Grenade+1.mp3')
-#BULLET_FIRE_SOUND = pygame.mixer.Sound('Assets/Gun+Silencer.mp3')
+BKImg = pygame.image.load(os.path.join("Assets","BK.png"))
+BK=pygame.transform.scale(BKImg,(SQUARE_SIZE,SQUARE_SIZE))
 
-HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
-WINNER_FONT = pygame.font.SysFont('comicsans', 100)
+RKImg = pygame.image.load(os.path.join("Assets","RK.png"))
+RK=pygame.transform.scale(RKImg,(SQUARE_SIZE,SQUARE_SIZE))
 
-FPS = 60
-PIECE_RADIUS=25
+BMImg = pygame.image.load(os.path.join("Assets","BM.png"))
+BM=pygame.transform.scale(BMImg,(SQUARE_SIZE,SQUARE_SIZE))
+
+RMImg = pygame.image.load(os.path.join("Assets","RM.png"))
+RM=pygame.transform.scale(RMImg,(SQUARE_SIZE,SQUARE_SIZE))
 
 
+#game utils
 def location(x):
     return  x*SQUARE_SIZE
 
@@ -38,89 +47,164 @@ def piece_location(x):
     return x*PIECE_RADIUS+PIECE_RADIUS/2
 
 KING_SIZE=4
-def draw_board(board):
-    # WIN.blit(SPACE, (0, 0))
-    for r in range(NRow):
-        for c in range(NColumn):
-            if board[r][c]==DARK_SQUARE:
-                rect_square=pygame.Rect(location(r),location(c),SQUARE_SIZE,SQUARE_SIZE)
-                pygame.draw.rect(WIN,GREY,rect_square)
-            if board[r][c]==WHITE_SQUARE:
-                rect_square=pygame.Rect(location(r),location(c),SQUARE_SIZE,SQUARE_SIZE)
-                pygame.draw.rect(WIN,WHITE,rect_square)
-            if board[r][c]==PLAYER1:
-                pygame.draw.circle(WIN,RED,(piece_location(r),piece_location(c)),PIECE_RADIUS,0)
-            if board[r][c]==PLAYER2:
-                pygame.draw.circle(WIN,BLACK,(piece_location(r),piece_location(c)),PIECE_RADIUS,0)
-            if board[r][c]==PLAYER1+PLAYER1:
-                pygame.draw.polygon(WIN,RED,
-                                        [(0*KING_SIZE+piece_location(c),2*KING_SIZE+piece_location(r)),
-                                         (3*KING_SIZE+piece_location(c),6*KING_SIZE+piece_location(r)),
-                                         (5*KING_SIZE+piece_location(c),0*KING_SIZE+piece_location(r)),
-                                         (7*KING_SIZE+piece_location(c),6*KING_SIZE+piece_location(r)),
-                                         (10*KING_SIZE+piece_location(c),2*KING_SIZE+piece_location(r)),
-                                         (9*KING_SIZE+piece_location(c),10*KING_SIZE+piece_location(r)),
-                                         (1*KING_SIZE+piece_location(c),10*KING_SIZE+piece_location(r))])
-            if board[r][c]==PLAYER2+PLAYER2:
-                pygame.draw.polygon(WIN,BLACK,
-                                        [(0*KING_SIZE+piece_location(c),2*KING_SIZE+piece_location(r)),
-                                         (3*KING_SIZE+piece_location(c),6*KING_SIZE+piece_location(r)),
-                                         (5*KING_SIZE+piece_location(c),0*KING_SIZE+piece_location(r)),
-                                         (7*KING_SIZE+piece_location(c),6*KING_SIZE+piece_location(r)),
-                                         (10*KING_SIZE+piece_location(c),2*KING_SIZE+piece_location(r)),
-                                         (9*KING_SIZE+piece_location(c),10*KING_SIZE+piece_location(r)),
-                                         (1*KING_SIZE+piece_location(c),10*KING_SIZE+piece_location(r))])
-            
+WHITE_SQUARE=pygame.Rect(0,0,50,50)
+PIECES_DICT={}
 
-    red_health_text = HEALTH_FONT.render(
-        "Health: " + str(red_health), 1, WHITE)
-    yellow_health_text = HEALTH_FONT.render(
-        "Health: " + str(yellow_health), 1, WHITE)
-    WIN.blit(red_health_text, (WIDTH - red_health_text.get_width() - 10, 10))
-    WIN.blit(yellow_health_text, (10, 10))
+class PIECE:
+    pos=()
+    color=None
+    surface=None
+    isKing=False
+    isFocus=False
+    gird_pos=()
+    move_tips_pieces=[]
 
-    WIN.blit(YELLOW_SPACESHIP, (yellow.x, yellow.y))
-    WIN.blit(RED_SPACESHIP, (red.x, red.y))
+FOCUS_PIECE_GRID_POS=()
 
-    pygame.display.update()
+def init_piece():
+    for x in range(8):
+        for y in range(8):
+            if (x+y)%2==1:
+                if x<3:
+                    piece=PIECE()
+                    piece.color=RED
+                    piece.pos=(location(y),location(x))
+                    piece.radius=PIECE_RADIUS/2
+                    piece.gird_pos=(x,y)
+                    PIECES_DICT[x,y]=piece
+                elif x>4:
+                    piece=PIECE()
+                    piece.color=BLACK
+                    piece.pos=(location(y),location(x))
+                    piece.radius=PIECE_RADIUS/2
+                    piece.gird_pos=(x,y)
+                    PIECES_DICT[x,y]=piece
+
+def update_draw():
+    WIN.fill(BOARD)
+    #board
+    for x in range(8):
+        for y in range(8):
+            if (x+y)%2==1:
+                obj=WHITE_SQUARE.copy()
+                obj.x=y*50
+                obj.y=x*50
+                pygame.draw.rect(WIN,GREY,obj)
+    #piece
+    for k in PIECES_DICT:
+        if PIECES_DICT[k].color==RED:
+            if PIECES_DICT[k].isKing:
+                p=WIN.blit(RK,PIECES_DICT[k].pos)
+                PIECES_DICT[k].surface=p
+            else:
+                p=WIN.blit(RM,PIECES_DICT[k].pos)
+                PIECES_DICT[k].surface=p
+        elif PIECES_DICT[k].color==BLACK:
+            if PIECES_DICT[k].isKing:
+                p=WIN.blit(BK,PIECES_DICT[k].pos)
+                PIECES_DICT[k].surface=p
+            else:
+                p=WIN.blit(BM,PIECES_DICT[k].pos)
+                PIECES_DICT[k].surface=p
+        #piece focus outline
+        if PIECES_DICT[k].isFocus:
+            pygame.draw.rect(WIN,WHITE,PIECES_DICT[k].surface,2)
+        #TODO
+        #piece movement tips
+
+    return
 
 
-def piece_handle_movement(keys_pressed, yellow):
-    if keys_pressed[pygame.K_a] and yellow.x - VEL > 0:  # LEFT
-        yellow.x -= VEL
-    if keys_pressed[pygame.K_d] and yellow.x + VEL + yellow.width < BORDER.x:  # RIGHT
-        yellow.x += VEL
-    if keys_pressed[pygame.K_w] and yellow.y - VEL > 0:  # UP
-        yellow.y -= VEL
-    if keys_pressed[pygame.K_s] and yellow.y + VEL + yellow.height < HEIGHT - 15:  # DOWN
-        yellow.y += VEL
+def draw_mouse(mouse_pos):
+    txt="x:{0},y={1}".format(mouse_pos[0],mouse_pos[1])
+    draw_mouse_pos_text=HEALTH_FONT.render(txt,1,BLACK)
+    WIN.blit(draw_mouse_pos_text,mouse_pos)
+    return 
 
-
-def draw_winner(text):
-    draw_text = WINNER_FONT.render(text, 1, WHITE)
-    WIN.blit(draw_text, (WIDTH/2 - draw_text.get_width() /
-                         2, HEIGHT/2 - draw_text.get_height()/2))
-    pygame.display.update()
-    pygame.time.delay(5000)
+def piece_update(board,pos):
+    #TODO
+    #add,del,piece
+    #del thisdict["model"]
+    return
 
 
 def main():
-    clock = pygame.time.Clock()
-    run = True
+    global FOCUS_PIECE_GRID_POS
 
-    #game init
-    game=Draughts()
-    while run:
+    game=Draughts(PLAYER1_SYMBOL)
+
+    AIPLAYERS={
+        'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,4),
+        "Q":QLaerning(PLAYER1_SYMBOL,1000),
+        "MCTS":MCTS(PLAYER1_SYMBOL,1000),
+        "HUMAN":Human(PLAYER2_SYMBOL,True)}
+
+    GAMEPLAYERS={
+        PLAYER1_SYMBOL:AIPLAYERS["MINIMAX"],
+        PLAYER2_SYMBOL:AIPLAYERS["HUMAN"]
+    }
+
+    init_piece()
+
+    clock = pygame.time.Clock()
+
+    while True:
         clock.tick(FPS)
+        #EVENTS
+        if game.isGameOver():
+            continue
+        else:
+            player=GAMEPLAYERS[game.current_player]
+            next_possbile_states=game.Movement(game.board,game.current_player)
+            board_pos=player.chooseMove(next_possbile_states)
+            if board_pos==None:
+                continue
+            else:
+                game.update(board_pos[0],board_pos[1])
+            
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False
                 pygame.quit()
+                return
 
-        draw_board(game)
-        mouse_pressed=pygame.mouse.get_pressed(3)
-        piece_handle_movement(mouse_pressed)
+            if event.type==pygame.MOUSEBUTTONDOWN and event.button==1:
+                #human input 
+                pos=pygame.mouse.get_pos()
+                if player.isHuman:
+                    for k in PIECES_DICT:
+                        if PIECES_DICT[k].surface.collidepoint(pos):
+                            print(k)
+                            if FOCUS_PIECE_GRID_POS!=k and FOCUS_PIECE_GRID_POS !=():
+                                PIECES_DICT[k].isFocus=True
+                                PIECES_DICT[k].move_grid_pos=[]
+                                PIECES_DICT[FOCUS_PIECE_GRID_POS].move_grid_pos=[]
+                                PIECES_DICT[k].move_tips_rect=[]
+                                PIECES_DICT[FOCUS_PIECE_GRID_POS].move_tips_rect=[]
+                                PIECES_DICT[FOCUS_PIECE_GRID_POS].isFocus=False
+                                FOCUS_PIECE_GRID_POS=k
+                            else:
+                                FOCUS_PIECE_GRID_POS=k
+                                PIECES_DICT[FOCUS_PIECE_GRID_POS].isFocus=True
+                        #choose action
+                        for move_tips_piece in PIECES_DICT[k].move_tips_pieces:
+                            if move_tips_piece.surface.collidepoint(pos):
+                                from_grid_pos=PIECES_DICT[k].grid_pos
+                                to_grid_pos=move_tips_piece.grid_pos
+                                player.get_input(from_grid_pos,to_grid_pos)
 
+            #test
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_SPACE:
+                    PIECES_DICT[2,1].pos=(300,77)
+
+            print(event)
+
+        piece_update(game.board)
+        #Drawing
+        update_draw()
+        draw_mouse(pygame.mouse.get_pos())                            
+        pygame.display.flip()
 
     main()
 

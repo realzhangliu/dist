@@ -2,8 +2,8 @@ from GI import Game
 import numpy as np
 
 
-PLAYER1='1'
-PLAYER2='2'
+PLAYER1_SYMBOL='1'
+PLAYER2_SYMBOL='2'
 
 NRow=8
 NColumn=8
@@ -19,7 +19,7 @@ PieceDiameter=23
 class Draughts(Game):
     
     def __init__(self,player):
-        self.current_player = PLAYER1
+        self.current_player = PLAYER1_SYMBOL
         self.board = self.generateGameBoard()
         
     def generateGameBoard(self):
@@ -28,14 +28,14 @@ class Draughts(Game):
         for x in range(3):
             for y in range(NColumn):
                 if blankBorad[x][y]==DARK_SQUARE:
-                    blankBorad[x][y]=PLAYER1
+                    blankBorad[x][y]=PLAYER1_SYMBOL
                 if blankBorad[(x+1)*-1][y]==DARK_SQUARE:
-                    blankBorad[(x+1)*-1][y]=PLAYER2
+                    blankBorad[(x+1)*-1][y]=PLAYER2_SYMBOL
         return blankBorad
         
     
     def update(self,newstate,pos):
-        self.current_player= PLAYER1 if self.current_player==PLAYER2 else PLAYER2
+        self.current_player= PLAYER1_SYMBOL if self.current_player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
         self.board=newstate
     
     def getMoves(self):
@@ -44,7 +44,7 @@ class Draughts(Game):
     
     def isGameOver(self):
         v=self.checkWhoWon(self.board)
-        if  v== PLAYER1 or v==PLAYER2:
+        if  v== PLAYER1_SYMBOL or v==PLAYER2_SYMBOL:
             return True
         else:
             return False
@@ -52,17 +52,17 @@ class Draughts(Game):
     def checkWhoWon(self,cur):
         cur=np.array(cur)
         #A player wins by capturing all of the opponent's pieces 
-        if not (cur==PLAYER1).any() and not (cur==PLAYER1+PLAYER1).any():
+        if not (cur==PLAYER1_SYMBOL).any() and not (cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).any():
             #player 2 won
-            return PLAYER2
-        if not (cur==PLAYER2).any() and not (cur==PLAYER2+PLAYER2).any():
+            return PLAYER2_SYMBOL
+        if not (cur==PLAYER2_SYMBOL).any() and not (cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).any():
             #player 1 won
-            return PLAYER1
+            return PLAYER1_SYMBOL
         #or by leaving the opponent with no legal move
-        if len(self.Movement(cur,PLAYER1))>0 and len(self.Movement(cur,PLAYER2))==0:
-            return PLAYER1
-        if len(self.Movement(cur,PLAYER2))>0 and len(self.Movement(cur,PLAYER1))==0:
-            return PLAYER1
+        if len(self.Movement(cur,PLAYER1_SYMBOL))>0 and len(self.Movement(cur,PLAYER2_SYMBOL))==0:
+            return PLAYER1_SYMBOL
+        if len(self.Movement(cur,PLAYER2_SYMBOL))>0 and len(self.Movement(cur,PLAYER1_SYMBOL))==0:
+            return PLAYER1_SYMBOL
         return 0
     
     def getWinner(self):
@@ -99,9 +99,9 @@ class Draughts(Game):
     def jump(self,cur,pos,player,isking=False):
         newState=list()
         if not isking:
-            if (player==PLAYER1 and pos[0]==NRow-1) or (player==PLAYER2 and pos[0]==0):
+            if (player==PLAYER1_SYMBOL and pos[0]==NRow-1) or (player==PLAYER2_SYMBOL and pos[0]==0):
                 #check if is already being crowned
-                if cur[pos[0]][pos[1]]!=PLAYER1+PLAYER1 and cur[pos[0]][pos[1]]!= PLAYER2+PLAYER2:
+                if cur[pos[0]][pos[1]]!=PLAYER1_SYMBOL+PLAYER1_SYMBOL and cur[pos[0]][pos[1]]!= PLAYER2_SYMBOL+PLAYER2_SYMBOL:
                     #crown this man and stop jumping
                     newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
                     newCur[pos[0]][pos[1]]+=newCur[pos[0]][pos[1]] # 11 or 22
@@ -114,7 +114,7 @@ class Draughts(Game):
                 destPos=pos+act+act
                 if self.checkValidPos(cur,destPos):
                     #opponent's piece exist
-                    oppoPlayer=PLAYER1 if player==PLAYER2 else PLAYER2
+                    oppoPlayer=PLAYER1_SYMBOL if player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
                     if cur[oppoPiecePos[0]][oppoPiecePos[1]]==oppoPlayer:
                         newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
                         newSubCurState=capture(newCur,pos,destPos,oppoPiecePos)
@@ -127,7 +127,7 @@ class Draughts(Game):
             return newState 
         else:
             #king jumping 
-            oppoPlayer=PLAYER1 if player==PLAYER2 else PLAYER2
+            oppoPlayer=PLAYER1_SYMBOL if player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
             for act in self.jumpAct:
                 #the maximum mumber of squares in diagonal direction less than 8, so 8 times can cover every squares.
                 for i in range(2,8):
@@ -168,7 +168,7 @@ class Draughts(Game):
     # pos is current piece scaned
     def simpleMove(self,cur,pos,player,isking=False):
         newState=[]
-        acts=self.moveBackAct if player==PLAYER1 else self.moveForwardAct
+        acts=self.moveBackAct if player==PLAYER1_SYMBOL else self.moveForwardAct
         if not isking:
             for act in np.array(acts):
                 newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
@@ -195,7 +195,7 @@ class Draughts(Game):
                         destsPos.append(destPos.tolist())
             #Wherever square AI piece land on do not affect the value of evalFunction,So just choose it randomly.
             #but list all actions for human player
-            if player==PLAYER2:
+            if player==PLAYER2_SYMBOL:
                 for subpos in destsPos:
                     newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
                     newCur[subpos[0]][subpos[1]]=newCur[pos[0]][pos[1]]
@@ -213,11 +213,11 @@ class Draughts(Game):
     #check and setup the men who can turn into king
     def Crown(self,cur):
         for j in range(NRow):
-            if cur[0][j]==PLAYER2:
+            if cur[0][j]==PLAYER2_SYMBOL:
                 newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
                 newCur[0][j]+=newCur[0][j] # 11 or 22
                 return newCur
-            if cur[-1][j]==PLAYER1:
+            if cur[-1][j]==PLAYER1_SYMBOL:
                 newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
                 newCur[-1][j]+=newCur[-1][j] # 11 or 22
                 return newCur
@@ -277,22 +277,22 @@ class Draughts(Game):
         # total player 1 - total player 2 
         cur=np.array(cur)
         #Player 1 points 
-        mensPoint=(cur==PLAYER1).sum()
-        kingsPoint=(cur==PLAYER1+PLAYER1).sum()*10
+        mensPoint=(cur==PLAYER1_SYMBOL).sum()
+        kingsPoint=(cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).sum()*10
         p1p=mensPoint+kingsPoint
         #Player 2 points
-        mensPoint=(cur==PLAYER2).sum()
-        kingsPoint=(cur==PLAYER2+PLAYER2).sum()*10
+        mensPoint=(cur==PLAYER2_SYMBOL).sum()
+        kingsPoint=(cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).sum()*10
         p2p=mensPoint+kingsPoint
 
         #strageties 
         #1. favoring no move when difference between the number of rows of the pieces equal 1
-        p1men=np.where(cur==PLAYER1)
-        p1king=np.where(cur==PLAYER1+PLAYER1)
+        p1men=np.where(cur==PLAYER1_SYMBOL)
+        p1king=np.where(cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL)
         p1TotalPos=(list(zip(p1men[0],p1men[1])))+(list(zip(p1king[0],p1king[1])))
 
-        p2men=np.where(cur==PLAYER2)
-        p2king=np.where(cur==PLAYER2+PLAYER2)
+        p2men=np.where(cur==PLAYER2_SYMBOL)
+        p2king=np.where(cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL)
         p2TotalPos=(list(zip(p2men[0],p2men[1])))+(list(zip(p2king[0],p2king[1])))
         for p1pos in p1TotalPos:
             for p2pos in p2TotalPos:
