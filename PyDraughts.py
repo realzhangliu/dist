@@ -1,4 +1,6 @@
+from glob import glob
 from multiprocessing import connection
+from shutil import move
 from turtle import pos
 import pygame
 import os
@@ -18,9 +20,11 @@ HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
 
 #game init
 WHITE = (240, 240, 240)
-BOARD=(180,180,180)
+BOARD=(210,210,230)
 BLACK = (39, 39, 39)
+PLAYER2_COLOR=(39, 39, 39)
 RED = (154, 34, 20)
+PLAYER1_COLOR=(154, 34, 20)
 YELLOW = (255, 255, 0)
 GREY=(90,90,90)
 SQUARE_SIZE=50
@@ -52,31 +56,31 @@ PIECES_DICT={}
 
 class PIECE:
     pos=()
-    color=None
+    player=-1
     surface=None
     isKing=False
     isFocus=False
     gird_pos=()
+    move_grid_pos=[]
+    #for next select
     move_tips_pieces=[]
 
 FOCUS_PIECE_GRID_POS=()
 
+#custom game state
+#TODO
 def init_piece():
     for x in range(8):
         for y in range(8):
             if (x+y)%2==1:
                 if x<3:
                     piece=PIECE()
-                    piece.color=RED
                     piece.pos=(location(y),location(x))
-                    piece.radius=PIECE_RADIUS/2
                     piece.gird_pos=(x,y)
                     PIECES_DICT[x,y]=piece
                 elif x>4:
                     piece=PIECE()
-                    piece.color=BLACK
                     piece.pos=(location(y),location(x))
-                    piece.radius=PIECE_RADIUS/2
                     piece.gird_pos=(x,y)
                     PIECES_DICT[x,y]=piece
 
@@ -92,14 +96,14 @@ def update_draw():
                 pygame.draw.rect(WIN,GREY,obj)
     #piece
     for k in PIECES_DICT:
-        if PIECES_DICT[k].color==RED:
+        if PIECES_DICT[k].player==PLAYER1_SYMBOL:
             if PIECES_DICT[k].isKing:
                 p=WIN.blit(RK,PIECES_DICT[k].pos)
                 PIECES_DICT[k].surface=p
             else:
                 p=WIN.blit(RM,PIECES_DICT[k].pos)
                 PIECES_DICT[k].surface=p
-        elif PIECES_DICT[k].color==BLACK:
+        elif PIECES_DICT[k].player==PLAYER2_SYMBOL:
             if PIECES_DICT[k].isKing:
                 p=WIN.blit(BK,PIECES_DICT[k].pos)
                 PIECES_DICT[k].surface=p
@@ -109,9 +113,16 @@ def update_draw():
         #piece focus outline
         if PIECES_DICT[k].isFocus:
             pygame.draw.rect(WIN,WHITE,PIECES_DICT[k].surface,2)
-        #TODO
-        #piece movement tips
-
+            #tips for movement 
+            for v in range(len(PIECES_DICT[k].move_tips_pieces)):
+                p=pygame.draw.rect(WIN,YELLOW,
+                (
+                    PIECES_DICT[k].move_tips_pieces[v].pos[0],
+                    PIECES_DICT[k].move_tips_pieces[v].pos[1],
+                    SQUARE_SIZE,SQUARE_SIZE),2)
+                PIECES_DICT[k].move_tips_pieces[v].surface=p
+                
+                
     return
 
 
@@ -121,10 +132,71 @@ def draw_mouse(mouse_pos):
     WIN.blit(draw_mouse_pos_text,mouse_pos)
     return 
 
-def piece_update(board,pos):
-    #TODO
-    #add,del,piece
-    #del thisdict["model"]
+#convert ascii to piece objs in dict
+def piece_dict_update(board):
+    PIECES_DICT.clear()
+    for r in range(NRow):
+        for c in range(NColumn):
+            #all valid piece positions
+            if (r+c)%2==1:
+                if board[r][c]!=DARK_SQUARE:
+                    if board[r][c]==PLAYER1_SYMBOL:
+                        piece=PIECE()
+                        piece.player=PLAYER1_SYMBOL
+                        piece.pos=(location(c),location(r))
+                        piece.gird_pos=(r,c)
+                        PIECES_DICT[r,c]=piece
+                    if board[r][c]==PLAYER1_SYMBOL+PLAYER1_SYMBOL:
+                        piece=PIECE()
+                        piece.player=PLAYER1_SYMBOL
+                        piece.pos=(location(c),location(r))
+                        piece.gird_pos=(r,c)
+                        piece.isKing=True
+                        PIECES_DICT[r,c]=piece
+                    if board[r][c]==PLAYER2_SYMBOL:
+                        piece=PIECE()
+                        piece.player=PLAYER2_SYMBOL
+                        piece.pos=(location(c),location(r))
+                        piece.gird_pos=(r,c)
+                        PIECES_DICT[r,c]=piece
+                    if board[r][c]==PLAYER1_SYMBOL+PLAYER2_SYMBOL:
+                        piece=PIECE()
+                        piece.player=PLAYER2_SYMBOL
+                        piece.pos=(location(c),location(r))
+                        piece.isKing=True
+                        piece.gird_pos=(r,c)
+                        PIECES_DICT[r,c]=piece
+    return
+
+def piece_focused(k,all_possible_moves):
+    global FOCUS_PIECE_GRID_POS
+    if  k==FOCUS_PIECE_GRID_POS:
+        return
+
+    #focused piece changed
+    if FOCUS_PIECE_GRID_POS !=():
+        PIECES_DICT[k].isFocus=True
+        PIECES_DICT[FOCUS_PIECE_GRID_POS].move_tips_pieces=[]
+        PIECES_DICT[FOCUS_PIECE_GRID_POS].isFocus=False
+    else:
+        #()
+        PIECES_DICT[k].isFocus=True
+
+    FOCUS_PIECE_GRID_POS=k
+
+    #create move tips pieces
+    if all_possible_moves !=None:
+        n_states=np.array(all_possible_moves,dtype=object)
+        n_moves=n_states[:,NColumn] #[[[0,0],[1,1]],[[0,0],[1,1]]]
+        n_k_moves=[]
+        for v in n_moves:#[[0,0],[1,1]]
+            if v[0]==k:
+                piece=PIECE()
+                piece.pos=(location(v[1][0]),location(v[1][0]))
+                piece.gird_pos=(v[1][0],v[1][1])
+                piece.move_grid_pos=v
+                PIECES_DICT[k].move_tips_pieces.append(piece)    
+
     return
 
 
@@ -151,16 +223,26 @@ def main():
     while True:
         clock.tick(FPS)
         #EVENTS
-        if game.isGameOver():
-            continue
-        else:
-            player=GAMEPLAYERS[game.current_player]
-            next_possbile_states=game.Movement(game.board,game.current_player)
-            board_pos=player.chooseMove(next_possbile_states)
-            if board_pos==None:
-                continue
-            else:
-                game.update(board_pos[0],board_pos[1])
+        selected_board=None
+        selected_move=None
+        #contain of board and movement
+        next_possbile_states=None
+        if not game.isGameOver():
+            #generated all possible movements
+            if next_possbile_states == None:
+                player=GAMEPLAYERS[game.current_player]
+                next_possbile_states=game.Movement(game.board,game.current_player)
+            
+            #select one movement by AI or Human
+            if next_possbile_states!=None:
+                board_move=player.chooseMove(game,next_possbile_states)
+                if board_move!=None:
+                    selected_board=board_move[0]
+                    selected_move=board_move[1]
+                    game.update(selected_board,selected_move)
+                    piece_dict_update(game.board)
+                    next_possbile_states=None
+
             
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -175,22 +257,14 @@ def main():
                     for k in PIECES_DICT:
                         if PIECES_DICT[k].surface.collidepoint(pos):
                             print(k)
-                            if FOCUS_PIECE_GRID_POS!=k and FOCUS_PIECE_GRID_POS !=():
-                                PIECES_DICT[k].isFocus=True
-                                PIECES_DICT[k].move_grid_pos=[]
-                                PIECES_DICT[FOCUS_PIECE_GRID_POS].move_grid_pos=[]
-                                PIECES_DICT[k].move_tips_rect=[]
-                                PIECES_DICT[FOCUS_PIECE_GRID_POS].move_tips_rect=[]
-                                PIECES_DICT[FOCUS_PIECE_GRID_POS].isFocus=False
-                                FOCUS_PIECE_GRID_POS=k
-                            else:
-                                FOCUS_PIECE_GRID_POS=k
-                                PIECES_DICT[FOCUS_PIECE_GRID_POS].isFocus=True
+                            piece_focused(k,next_possbile_states)
+
                         #choose action
-                        for move_tips_piece in PIECES_DICT[k].move_tips_pieces:
-                            if move_tips_piece.surface.collidepoint(pos):
-                                from_grid_pos=PIECES_DICT[k].grid_pos
-                                to_grid_pos=move_tips_piece.grid_pos
+                        #PIECES_DICT[k].move_tips_pieces[v].surface
+                        for piece in PIECES_DICT[k].move_tips_pieces:
+                            if piece.surface.collidepoint(pos):
+                                from_grid_pos=piece.move_grid_pos[0]
+                                to_grid_pos=piece.move_grid_pos[1]
                                 player.get_input(from_grid_pos,to_grid_pos)
 
             #test
@@ -200,7 +274,6 @@ def main():
 
             print(event)
 
-        piece_update(game.board)
         #Drawing
         update_draw()
         draw_mouse(pygame.mouse.get_pos())                            

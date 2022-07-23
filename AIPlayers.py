@@ -7,12 +7,6 @@ class MiniMaxPlayer(Player):
         super().__init__(piece)
         self.initial_depth = max(1, initial_depth)
         self.g=None
-    
-    def chooseMove(self, game):
-        self.g=game
-        # bestValue, bestMove = self.alphabeta(game, self.initial_depth, -self.INFINITY, self.INFINITY)
-        newState,newPos=self.MinimaxDecision(self.g.board)
-        return newState,newPos
 
     def chooseMove(self, game,possible_states):
         self.g=game
@@ -49,7 +43,8 @@ class MiniMaxPlayer(Player):
         if depth==0:
             return self.g.evalState(curState)
         minValue=24
-        for v in self.g.Movement(curState,PLAYER2_SYMBOL):
+        opponent= PLAYER1_SYMBOL if self.player_piece!=PLAYER1_SYMBOL else PLAYER2_SYMBOL
+        for v in self.g.Movement(curState, opponent):
             v=v[:NRow]
             val=self.MaxValue(v,alpha,beta,depth-1)
             if val<minValue:
@@ -72,7 +67,8 @@ class MiniMaxPlayer(Player):
         if depth==0:
             return self.g.evalState(curState)
         maxValue=-20
-        for v in self.g.Movement(curState,PLAYER1_SYMBOL):
+        ally= PLAYER1_SYMBOL if self.player_piece==PLAYER1_SYMBOL else PLAYER2_SYMBOL
+        for v in self.g.Movement(curState,ally):
             v=v[:NRow]
             val=self.MinValue(v,alpha,beta,depth-1)
             if val>maxValue:
