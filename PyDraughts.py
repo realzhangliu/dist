@@ -168,15 +168,18 @@ def piece_dict_update(board):
                         PIECES_DICT[r,c]=piece
     return
 
-def piece_focused(k,all_possible_moves):
+def piece_focused(player,k,all_possible_moves):
     global FOCUS_PIECE_GRID_POS
     if  k==FOCUS_PIECE_GRID_POS:
+        return
+
+    if PIECES_DICT[k].player!=player:
         return
 
     #focused piece changed
     if FOCUS_PIECE_GRID_POS !=():
         PIECES_DICT[k].isFocus=True
-        PIECES_DICT[FOCUS_PIECE_GRID_POS].move_tips_pieces=[]
+        PIECES_DICT[FOCUS_PIECE_GRID_POS].move_tips_pieces.clear()
         PIECES_DICT[FOCUS_PIECE_GRID_POS].isFocus=False
     else:
         #()
@@ -186,15 +189,14 @@ def piece_focused(k,all_possible_moves):
 
     #create move tips pieces
     if all_possible_moves !=None:
-        n_states=np.array(all_possible_moves,dtype=object)
-        n_moves=n_states[:,NColumn] #[[[0,0],[1,1]],[[0,0],[1,1]]]
-        n_k_moves=[]
-        for v in n_moves:#[[0,0],[1,1]]
-            if v[0]==k:
+        for board_move in all_possible_moves:
+            if board_move[NRow][0]==list(k):
+                x=board_move[NRow][1][0]
+                y=board_move[NRow][1][1]
                 piece=PIECE()
-                piece.pos=(location(v[1][0]),location(v[1][0]))
-                piece.gird_pos=(v[1][0],v[1][1])
-                piece.move_grid_pos=v
+                piece.pos=(location(y),location(x))
+                piece.gird_pos=(x,y)
+                piece.move_grid_pos=board_move[NRow]
                 PIECES_DICT[k].move_tips_pieces.append(piece)    
 
     return
@@ -257,12 +259,12 @@ def main():
                     for k in PIECES_DICT:
                         if PIECES_DICT[k].surface.collidepoint(pos):
                             print(k)
-                            piece_focused(k,next_possbile_states)
+                            piece_focused(player.player_piece,k,next_possbile_states)
 
                         #choose action
                         #PIECES_DICT[k].move_tips_pieces[v].surface
                         for piece in PIECES_DICT[k].move_tips_pieces:
-                            if piece.surface.collidepoint(pos):
+                            if piece.surface!=None and piece.surface.collidepoint(pos):
                                 from_grid_pos=piece.move_grid_pos[0]
                                 to_grid_pos=piece.move_grid_pos[1]
                                 player.get_input(from_grid_pos,to_grid_pos)
