@@ -34,10 +34,15 @@ class MiniMaxPlayer(Player):
 
     def MinValue(self,curState,alpha,beta,depth):
         #test won 
-        if self.g.checkWhoWon(curState)==self.player_piece:
+        winner=self.g.checkWhoWon(curState)
+        if winner==self.player_piece:
             return 20
-        if self.g.checkWhoWon(curState)!=self.player_piece:
+        if winner!=0 and winner!=self.player_piece:
             return -20
+        # if self.g.checkWhoWon(curState)==self.player_piece:
+        #     return 20
+        # if self.g.checkWhoWon(curState)!=self.player_piece:
+        #     return -20
         # draw ?, AI never give up
         #test eval
         if depth==0:
@@ -57,11 +62,16 @@ class MiniMaxPlayer(Player):
 
 
     def MaxValue(self,curState,alpha,beta,depth):
-        #test won 
-        if self.g.checkWhoWon(curState)==self.player_piece:
+        winner=self.g.checkWhoWon(curState)
+        if winner==self.player_piece:
             return 20
-        if self.g.checkWhoWon(curState)!=self.player_piece:
+        if winner!=0 and winner!=self.player_piece:
             return -20
+        #test won 
+        # if self.g.checkWhoWon(curState)==self.player_piece:
+        #     return 20
+        # if self.g.checkWhoWon(curState)!=self.player_piece:
+        #     return -20
         # draw ?, AI never give up
         #test eval
         if depth==0:
@@ -157,9 +167,8 @@ class Human(Player):
             for v in possible_states:
                 pos=v[NRow]
                 state=v[:NRow]
-                for p in pos:
-                    if p[0]==list(self.from_pos_input) and p[1]==list(self.to_pose_input[1]):
-                        self.from_pos_input=()
-                        self.to_pose_input=()
-                        return state,pos
+                if pos[0]==self.from_pos_input and pos[1]==self.to_pose_input:
+                    self.from_pos_input=()
+                    self.to_pose_input=()
+                    return state,pos
         return None

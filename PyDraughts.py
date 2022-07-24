@@ -20,7 +20,7 @@ HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
 
 #game init
 WHITE = (240, 240, 240)
-BOARD=(210,210,230)
+BOARD=(234,150,85)
 BLACK = (39, 39, 39)
 PLAYER2_COLOR=(39, 39, 39)
 RED = (154, 34, 20)
@@ -55,34 +55,20 @@ WHITE_SQUARE=pygame.Rect(0,0,50,50)
 PIECES_DICT={}
 
 class PIECE:
-    pos=()
-    player=-1
-    surface=None
-    isKing=False
-    isFocus=False
-    gird_pos=()
-    move_grid_pos=[]
-    #for next select
-    move_tips_pieces=[]
+    def __init__(self):
+        self.pos=()
+        self.player=-1
+        self.surface=None
+        self.isKing=False
+        self.isFocus=False
+        self.gird_pos=()
+        self.move_grid_pos=[]
+        #for next select
+        self.move_tips_pieces=[]
 
 FOCUS_PIECE_GRID_POS=()
 
-#custom game state
-#TODO
-def init_piece():
-    for x in range(8):
-        for y in range(8):
-            if (x+y)%2==1:
-                if x<3:
-                    piece=PIECE()
-                    piece.pos=(location(y),location(x))
-                    piece.gird_pos=(x,y)
-                    PIECES_DICT[x,y]=piece
-                elif x>4:
-                    piece=PIECE()
-                    piece.pos=(location(y),location(x))
-                    piece.gird_pos=(x,y)
-                    PIECES_DICT[x,y]=piece
+
 
 def update_draw():
     WIN.fill(BOARD)
@@ -134,6 +120,7 @@ def draw_mouse(mouse_pos):
 
 #convert ascii to piece objs in dict
 def piece_dict_update(board):
+    global FOCUS_PIECE_GRID_POS
     PIECES_DICT.clear()
     for r in range(NRow):
         for c in range(NColumn):
@@ -159,17 +146,36 @@ def piece_dict_update(board):
                         piece.pos=(location(c),location(r))
                         piece.gird_pos=(r,c)
                         PIECES_DICT[r,c]=piece
-                    if board[r][c]==PLAYER1_SYMBOL+PLAYER2_SYMBOL:
+                    if board[r][c]==PLAYER2_SYMBOL+PLAYER2_SYMBOL:
                         piece=PIECE()
                         piece.player=PLAYER2_SYMBOL
                         piece.pos=(location(c),location(r))
                         piece.isKing=True
                         piece.gird_pos=(r,c)
                         PIECES_DICT[r,c]=piece
+    FOCUS_PIECE_GRID_POS=()
     return
 
+def init_piece(board=None):
+    if board==None:
+        for x in range(8):
+            for y in range(8):
+                if (x+y)%2==1:
+                    if x<3:
+                        piece=PIECE()
+                        piece.pos=(location(y),location(x))
+                        piece.gird_pos=(x,y)
+                        PIECES_DICT[x,y]=piece
+                    elif x>4:
+                        piece=PIECE()
+                        piece.pos=(location(y),location(x))
+                        piece.gird_pos=(x,y)
+                        PIECES_DICT[x,y]=piece
+    else:
+        piece_dict_update(board)
+
 def piece_focused(player,k,all_possible_moves):
-    global FOCUS_PIECE_GRID_POS
+    global FOCUS_PIECE_GRID_POS,PIECES_DICT
     if  k==FOCUS_PIECE_GRID_POS:
         return
 
@@ -202,13 +208,28 @@ def piece_focused(player,k,all_possible_moves):
     return
 
 
+#EXAMPLES
+
+TURN_INTO_KING_1=[
+    ['_', '0', '_', '0', '_', '0', '_', '0'],
+    ['0', '_', '0', '_', '0', '_', '0', '_'],
+    ['_', '0', '_', '11', '_', '0', '_', '0'],
+    ['0', '_', '22', '_', '0', '_', '0', '_'],
+    ['_', '0', '_', '11', '_', '0', '_', '0'],
+    ['0', '_', '0', '_', '0', '_', '0', '_'],
+    ['_', '0', '_', '0', '_', '0', '_', '0'],
+    ['0', '_', '0', '_', '0', '_', '0', '_']]
+
 def main():
     global FOCUS_PIECE_GRID_POS
 
-    game=Draughts(PLAYER1_SYMBOL)
+    game=Draughts(PLAYER2_SYMBOL)
+    init_piece(game.board)
+
+
 
     AIPLAYERS={
-        'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,4),
+        'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,3),
         "Q":QLaerning(PLAYER1_SYMBOL,1000),
         "MCTS":MCTS(PLAYER1_SYMBOL,1000),
         "HUMAN":Human(PLAYER2_SYMBOL,True)}
@@ -218,17 +239,15 @@ def main():
         PLAYER2_SYMBOL:AIPLAYERS["HUMAN"]
     }
 
-    init_piece()
 
     clock = pygame.time.Clock()
-
+    selected_board=None
+    selected_move=None
+    #contain of board and movement
+    next_possbile_states=None
     while True:
         clock.tick(FPS)
         #EVENTS
-        selected_board=None
-        selected_move=None
-        #contain of board and movement
-        next_possbile_states=None
         if not game.isGameOver():
             #generated all possible movements
             if next_possbile_states == None:
@@ -262,7 +281,6 @@ def main():
                             piece_focused(player.player_piece,k,next_possbile_states)
 
                         #choose action
-                        #PIECES_DICT[k].move_tips_pieces[v].surface
                         for piece in PIECES_DICT[k].move_tips_pieces:
                             if piece.surface!=None and piece.surface.collidepoint(pos):
                                 from_grid_pos=piece.move_grid_pos[0]
@@ -272,7 +290,7 @@ def main():
             #test
             if event.type==pygame.KEYDOWN:
                 if event.key==pygame.K_SPACE:
-                    PIECES_DICT[2,1].pos=(300,77)
+                    continue
 
             print(event)
 

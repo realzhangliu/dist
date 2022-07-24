@@ -18,9 +18,10 @@ PieceDiameter=23
 
 class Draughts(Game):
     
-    def __init__(self,player):
-        self.current_player = PLAYER1_SYMBOL
-        self.board = self.generateGameBoard()
+    def __init__(self,player,board=None):
+        self.current_player = player
+        self.board = self.generateGameBoard() if board==None else board
+
         
     def generateGameBoard(self):
         blankBorad=[[(WHITE_SQUARE if y%2==0 else DARK_SQUARE )if x%2==0 else (DARK_SQUARE if y%2==0 else WHITE_SQUARE) for y in range(NColumn)] for x in range(NRow)]
@@ -59,20 +60,14 @@ class Draughts(Game):
             #player 1 won
             return PLAYER1_SYMBOL
         #or by leaving the opponent with no legal move
-        if len(self.Movement(cur,PLAYER1_SYMBOL))>0 and len(self.Movement(cur,PLAYER2_SYMBOL))==0:
-            return PLAYER1_SYMBOL
-        if len(self.Movement(cur,PLAYER2_SYMBOL))>0 and len(self.Movement(cur,PLAYER1_SYMBOL))==0:
-            return PLAYER1_SYMBOL
+        # if len(self.Movement(cur,PLAYER1_SYMBOL))>0 and len(self.Movement(cur,PLAYER2_SYMBOL))==0:
+            # return PLAYER1_SYMBOL
+        # if len(self.Movement(cur,PLAYER2_SYMBOL))>0 and len(self.Movement(cur,PLAYER1_SYMBOL))==0:
+            # return PLAYER1_SYMBOL
         return 0
     
     def getWinner(self):
         return self.checkWhoWon(self.board)
-    
-    def clone(self):
-        pass
-    
-    def drawGame(self):
-        pass
     
         #emnpty the captured square and move the piece
     def capture(self,cur,srcPos,destPos,capturedPos):
@@ -92,10 +87,13 @@ class Draughts(Game):
             return False
         return True
 
-    jumpAct=np.array([[-1,-1],[-1,1],[1,-1],[1,1]])
+    MoveAct=np.array([[-1,-1],[-1,1],[1,-1],[1,1]])
 
-    #stop recursing when reach the king row or cannot jump
-    #return 3 dimensions list, [[[x,y]*9]*8] with posiiton details.
+    MoveActPLayer1=np.array([[1,1],[1,-1]])
+    MoveActPLayer2=np.array([[-1,1],[-1,-1]])
+
+
+
     def jump(self,cur,pos,player,isking=False):
         newState=list()
         if not isking:
@@ -108,8 +106,51 @@ class Draughts(Game):
                     newCur.append([pos,pos])
                     newState.append(newCur)
                     return newState
+
+        #scan 4 direction which is diagonally adjacent an opponent's piece.
+        if not isking:
+            acts=self.MoveActPLayer1 if player==PLAYER1_SYMBOL else self.MoveActPLayer2
+        else:
+            acts=self.MoveAct
+        for act in acts:
+            oppoPiecePos=pos+act
+            destPos=pos+act+act
+            if self.checkValidPos(cur,destPos):
+                #opponent's piece exist
+                oppoPlayer=PLAYER1_SYMBOL if player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
+                if cur[oppoPiecePos[0]][oppoPiecePos[1]]==oppoPlayer or cur[oppoPiecePos[0]][oppoPiecePos[1]]==oppoPlayer+oppoPlayer:
+                    newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
+                    newSubCurState=self.capture(newCur,pos,destPos,oppoPiecePos)
+                    newSubCurState.append([pos,destPos.tolist()])
+                    #current state
+                    newState.append(newSubCurState)
+                    #new state
+                    c=self.jump(newSubCurState[:NRow],destPos.tolist(),player,isking)
+                    if c!=[]:
+                        old_pos=newState[0][NRow][0]
+                        newState=c
+                        newState[0][NRow][0]=old_pos
+                        # for x in c:
+                            # newState.append(x)
+        return newState 
+
+    #stop recursing when reach the king row or cannot jump
+    #return 3 dimensions list, [[[x,y]*9]*8] with posiiton details.
+    def jump_old(self,cur,pos,player,isking=False):
+        newState=list()
+        if not isking:
+            if (player==PLAYER1_SYMBOL and pos[0]==NRow-1) or (player==PLAYER2_SYMBOL and pos[0]==0):
+                #check if is already being crowned
+                if cur[pos[0]][pos[1]]!=PLAYER1_SYMBOL+PLAYER1_SYMBOL and cur[pos[0]][pos[1]]!= PLAYER2_SYMBOL+PLAYER2_SYMBOL:
+                    #crown this man and stop jumping
+                    newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
+                    newCur[pos[0]][pos[1]]+=newCur[pos[0]][pos[1]] # 11 or 22
+                    newCur.append([pos,pos])
+                    newState.append(newCur)
+                    return newState
             #scan 4 direction which is diagonally adjacent an opponent's piece.
-            for act in self.jumpAct:
+            self.MoveAct=self.MoveActPLayer1 if player==PLAYER1_SYMBOL else self.MoveActPLayer2
+            for act in self.MoveAct:
                 oppoPiecePos=pos+act
                 destPos=pos+act+act
                 if self.checkValidPos(cur,destPos):
@@ -117,18 +158,23 @@ class Draughts(Game):
                     oppoPlayer=PLAYER1_SYMBOL if player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
                     if cur[oppoPiecePos[0]][oppoPiecePos[1]]==oppoPlayer:
                         newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
-                        newSubCurState=capture(newCur,pos,destPos,oppoPiecePos)
+                        newSubCurState=self.capture(newCur,pos,destPos,oppoPiecePos)
                         newSubCurState.append([pos,destPos.tolist()])
+                        #current state
                         newState.append(newSubCurState)
+                        #new state
                         c=self.jump(newSubCurState[:NRow],destPos.tolist(),player,isking)
                         if c!=[]:
-                            for x in c:
-                                newState.append(x)
+                            old_pos=newState[0][NRow][0]
+                            newState=c
+                            newState[0][NRow][0]=old_pos
+                            # for x in c:
+                                # newState.append(x)
             return newState 
         else:
             #king jumping 
             oppoPlayer=PLAYER1_SYMBOL if player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
-            for act in self.jumpAct:
+            for act in self.MoveAct:
                 #the maximum mumber of squares in diagonal direction less than 8, so 8 times can cover every squares.
                 for i in range(2,8):
                     oppoPiecePos=pos+act*i-act
@@ -138,7 +184,7 @@ class Draughts(Game):
                     if self.checkValidPos(cur,destPos):
                         if cur[oppoPiecePos[0]][oppoPiecePos[1]]==oppoPlayer:
                             newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
-                            newSubCurState=capture(newCur,pos,destPos,oppoPiecePos)
+                            newSubCurState=self.capture(newCur,pos,destPos,oppoPiecePos)
                             newSubCurState.append([pos,destPos])
                             #explore reamining empty squares once jump(any possibility to jump again in this line)
                             jumpPos=list()
@@ -163,10 +209,25 @@ class Draughts(Game):
             return newState
 
 
-    moveForwardAct=[[-1,-1],[-1,1]]
-    moveBackAct=[[1,-1],[1,1]]
-    # pos is current piece scaned
     def simpleMove(self,cur,pos,player,isking=False):
+        newState=[]
+        if not isking:
+            acts=self.MoveActPLayer1 if player==PLAYER1_SYMBOL else self.MoveActPLayer2
+        else:
+            acts=self.MoveAct
+        for act in np.array(acts):
+            newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
+            destPos=pos+act
+            if self.checkValidPos(newCur,destPos):
+                #new board state
+                newCur[destPos[0]][destPos[1]]=newCur[pos[0]][pos[1]]
+                newCur[pos[0]][pos[1]]=DARK_SQUARE
+                newCur.append([pos,destPos.tolist()])
+                newState.append(newCur)
+        return newState
+
+    # pos is current piece scaned
+    def simpleMove_old(self,cur,pos,player,isking=False):
         newState=[]
         acts=self.moveBackAct if player==PLAYER1_SYMBOL else self.moveForwardAct
         if not isking:
