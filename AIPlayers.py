@@ -1,4 +1,4 @@
-from GI import Player
+from GameFramework import Player
 from Draughts import *
 import math
 

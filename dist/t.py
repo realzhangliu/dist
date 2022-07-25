@@ -1,6 +1,6 @@
 import pygame
 import os
-from GI import *
+from GameFramework import *
 from Draughts import *
 
 

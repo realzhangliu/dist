@@ -4,7 +4,7 @@ from shutil import move
 from turtle import pos
 import pygame
 import os
-from GI import *
+from GameFramework import *
 from Draughts import *
 from AIPlayers import *
 
@@ -20,7 +20,7 @@ HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
 
 #game init
 WHITE = (240, 240, 240)
-BOARD=(234,150,85)
+BOARD=(230,230,230)
 BLACK = (39, 39, 39)
 PLAYER2_COLOR=(39, 39, 39)
 RED = (154, 34, 20)
@@ -209,26 +209,31 @@ def piece_focused(player,k,all_possible_moves):
 
 
 #EXAMPLES
-
 TURN_INTO_KING_1=[
     ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
-    ['_', '0', '_', '0', '_', '0', '_', '0'],
+    ['_', '0', '_', '0', '_', '1', '_', '0'],
     ['0', '_', '2', '_', '0', '_', '0', '_'],
     ['_', '0', '_', '1', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
     ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_']]
 
+#TODO
+class AI_HELP:
+    def __init__(self):
+        self.wining_rate=0
+        return
+def print_ai_info(ai):
+    return
 
-def main():
+#init game,ai player
+#return game,2player
+def load_config(board=TURN_INTO_KING_1,P1="MINIMAX",P2="HUMAN"):
     global FOCUS_PIECE_GRID_POS
 
-    game=Draughts(PLAYER2_SYMBOL,TURN_INTO_KING_1)
+    game=Draughts(PLAYER2_SYMBOL,board)
     init_piece(game.board)
-
-
-
     AIPLAYERS={
         'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,4),
         "Q":QLaerning(PLAYER1_SYMBOL,1000),
@@ -236,23 +241,27 @@ def main():
         "HUMAN":Human(PLAYER2_SYMBOL,True)}
 
     GAMEPLAYERS={
-        PLAYER1_SYMBOL:AIPLAYERS["MINIMAX"],
-        PLAYER2_SYMBOL:AIPLAYERS["HUMAN"]
+        PLAYER1_SYMBOL:AIPLAYERS[P1],
+        PLAYER2_SYMBOL:AIPLAYERS[P2],
     }
+    return game,GAMEPLAYERS
 
+
+#entry
+def main():
+    game,GAMEPLAYERS=load_config()
 
     clock = pygame.time.Clock()
-    selected_board=None
-    selected_move=None
+    # selected_board=None
+    # selected_move=None
     #contain of board and movement
     next_possbile_states=None
     while True:
         clock.tick(FPS)
-        #EVENTS
+        player=GAMEPLAYERS[game.current_player]
         if not game.isGameOver():
             #generated all possible movements
             if next_possbile_states == None:
-                player=GAMEPLAYERS[game.current_player]
                 next_possbile_states=game.Movement(game.board,game.current_player)
             
             #select one movement by AI or Human
@@ -265,7 +274,7 @@ def main():
                     piece_dict_update(game.board)
                     next_possbile_states=None
 
-            
+        #EVENTS
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 run = False

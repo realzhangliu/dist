@@ -1,4 +1,4 @@
-from GI import Game
+from GameFramework import Game
 import numpy as np
 
 
@@ -21,6 +21,8 @@ class Draughts(Game):
     def __init__(self,player,board=None):
         self.current_player = player
         self.board = self.generateGameBoard() if board==None else board
+        self.winner=-1
+        self.isOver=False
 
         
     def generateGameBoard(self):
@@ -47,6 +49,8 @@ class Draughts(Game):
     def isGameOver(self):
         v=self.checkWhoWon(self.board)
         if  v== PLAYER1_SYMBOL or v==PLAYER2_SYMBOL:
+            self.isOver=True
+            self.winner=v
             return True
         else:
             return False
@@ -59,6 +63,12 @@ class Draughts(Game):
             return PLAYER2_SYMBOL
         if not (cur==PLAYER2_SYMBOL).any() and not (cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).any():
             #player 1 won
+            return PLAYER1_SYMBOL
+
+        if ((cur==PLAYER1_SYMBOL).sum()==1 or (cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).sum()==1) and ((cur==PLAYER2_SYMBOL).sum()>1 or (cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).sum()>1):
+            return PLAYER2_SYMBOL
+
+        if ((cur==PLAYER2_SYMBOL).sum()==1 or (cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).sum()==1) and ((cur==PLAYER1_SYMBOL).sum()>1 or (cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).sum()>1):
             return PLAYER1_SYMBOL
         #or by leaving the opponent with no legal move
         # if len(self.Movement(cur,PLAYER1_SYMBOL))>0 and len(self.Movement(cur,PLAYER2_SYMBOL))==0:
@@ -228,7 +238,7 @@ class Draughts(Game):
         
         #favor to becoming a king 
         for r in range(2,NRow):
-             player1_score+=(cur[r]==PLAYER1_SYMBOL).sum()
+             player1_score+=(cur[r]==PLAYER1_SYMBOL).sum()*0.5
 
 
         #Player 2 points
@@ -238,7 +248,7 @@ class Draughts(Game):
 
         #favor to becoming a king 
         for r in range(4,-1,-1):
-             player2_score+=(cur[r]==PLAYER2_SYMBOL).sum()
+             player2_score+=(cur[r]==PLAYER2_SYMBOL).sum()*0.5
 
         #strageties 
         #1. favoring no move when difference between the number of rows of the pieces equal 1
