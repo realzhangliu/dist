@@ -213,23 +213,24 @@ def piece_focused(player,k,all_possible_moves):
 TURN_INTO_KING_1=[
     ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
-    ['_', '0', '_', '11', '_', '0', '_', '0'],
-    ['0', '_', '22', '_', '0', '_', '0', '_'],
-    ['_', '0', '_', '11', '_', '0', '_', '0'],
+    ['_', '0', '_', '0', '_', '0', '_', '0'],
+    ['0', '_', '2', '_', '0', '_', '0', '_'],
+    ['_', '0', '_', '1', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
     ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_']]
 
+
 def main():
     global FOCUS_PIECE_GRID_POS
 
-    game=Draughts(PLAYER2_SYMBOL)
+    game=Draughts(PLAYER2_SYMBOL,TURN_INTO_KING_1)
     init_piece(game.board)
 
 
 
     AIPLAYERS={
-        'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,3),
+        'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,4),
         "Q":QLaerning(PLAYER1_SYMBOL,1000),
         "MCTS":MCTS(PLAYER1_SYMBOL,1000),
         "HUMAN":Human(PLAYER2_SYMBOL,True)}

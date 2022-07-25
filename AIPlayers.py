@@ -10,6 +10,8 @@ class MiniMaxPlayer(Player):
 
     def chooseMove(self, game,possible_states):
         self.g=game
+        if self.g.current_player!=self.player_piece:
+            raise ValueError('Wrong current player round.')
         # bestValue, bestMove = self.alphabeta(game, self.initial_depth, -self.INFINITY, self.INFINITY)
         newState,newPos=self.MinimaxDecision(possible_states)
         return newState,newPos
@@ -48,7 +50,9 @@ class MiniMaxPlayer(Player):
         if depth==0:
             return self.g.evalState(curState)
         minValue=24
-        opponent= PLAYER1_SYMBOL if self.player_piece!=PLAYER1_SYMBOL else PLAYER2_SYMBOL
+        
+        # opponent= PLAYER2_SYMBOL if self.player_piece==PLAYER1_SYMBOL else PLAYER1_SYMBOL
+        opponent=PLAYER2_SYMBOL if self.g.current_player==PLAYER1_SYMBOL else PLAYER2_SYMBOL
         for v in self.g.Movement(curState, opponent):
             v=v[:NRow]
             val=self.MaxValue(v,alpha,beta,depth-1)
@@ -77,8 +81,9 @@ class MiniMaxPlayer(Player):
         if depth==0:
             return self.g.evalState(curState)
         maxValue=-20
-        ally= PLAYER1_SYMBOL if self.player_piece==PLAYER1_SYMBOL else PLAYER2_SYMBOL
-        for v in self.g.Movement(curState,ally):
+        # ally= PLAYER1_SYMBOL if self.player_piece==PLAYER1_SYMBOL else PLAYER2_SYMBOL
+        me=PLAYER1_SYMBOL if self.g.current_player==PLAYER1_SYMBOL else PLAYER2_SYMBOL
+        for v in self.g.Movement(curState,me):
             v=v[:NRow]
             val=self.MinValue(v,alpha,beta,depth-1)
             if val>maxValue:

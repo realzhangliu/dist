@@ -36,6 +36,7 @@ class Draughts(Game):
         
     
     def update(self,newstate,pos):
+        newstate=self.Crown(newstate)
         self.current_player= PLAYER1_SYMBOL if self.current_player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
         self.board=newstate
     
@@ -136,79 +137,6 @@ class Draughts(Game):
 
     #stop recursing when reach the king row or cannot jump
     #return 3 dimensions list, [[[x,y]*9]*8] with posiiton details.
-    def jump_old(self,cur,pos,player,isking=False):
-        newState=list()
-        if not isking:
-            if (player==PLAYER1_SYMBOL and pos[0]==NRow-1) or (player==PLAYER2_SYMBOL and pos[0]==0):
-                #check if is already being crowned
-                if cur[pos[0]][pos[1]]!=PLAYER1_SYMBOL+PLAYER1_SYMBOL and cur[pos[0]][pos[1]]!= PLAYER2_SYMBOL+PLAYER2_SYMBOL:
-                    #crown this man and stop jumping
-                    newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
-                    newCur[pos[0]][pos[1]]+=newCur[pos[0]][pos[1]] # 11 or 22
-                    newCur.append([pos,pos])
-                    newState.append(newCur)
-                    return newState
-            #scan 4 direction which is diagonally adjacent an opponent's piece.
-            self.MoveAct=self.MoveActPLayer1 if player==PLAYER1_SYMBOL else self.MoveActPLayer2
-            for act in self.MoveAct:
-                oppoPiecePos=pos+act
-                destPos=pos+act+act
-                if self.checkValidPos(cur,destPos):
-                    #opponent's piece exist
-                    oppoPlayer=PLAYER1_SYMBOL if player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
-                    if cur[oppoPiecePos[0]][oppoPiecePos[1]]==oppoPlayer:
-                        newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
-                        newSubCurState=self.capture(newCur,pos,destPos,oppoPiecePos)
-                        newSubCurState.append([pos,destPos.tolist()])
-                        #current state
-                        newState.append(newSubCurState)
-                        #new state
-                        c=self.jump(newSubCurState[:NRow],destPos.tolist(),player,isking)
-                        if c!=[]:
-                            old_pos=newState[0][NRow][0]
-                            newState=c
-                            newState[0][NRow][0]=old_pos
-                            # for x in c:
-                                # newState.append(x)
-            return newState 
-        else:
-            #king jumping 
-            oppoPlayer=PLAYER1_SYMBOL if player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
-            for act in self.MoveAct:
-                #the maximum mumber of squares in diagonal direction less than 8, so 8 times can cover every squares.
-                for i in range(2,8):
-                    oppoPiecePos=pos+act*i-act
-                    destPos=pos+act*i
-                    destPos=destPos.tolist()
-                    #check if valid of landing position, then see if opponent's piece exist.
-                    if self.checkValidPos(cur,destPos):
-                        if cur[oppoPiecePos[0]][oppoPiecePos[1]]==oppoPlayer:
-                            newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
-                            newSubCurState=self.capture(newCur,pos,destPos,oppoPiecePos)
-                            newSubCurState.append([pos,destPos])
-                            #explore reamining empty squares once jump(any possibility to jump again in this line)
-                            jumpPos=list()
-                            for vi in range(i,NRow):
-                                destPos2=pos+act*vi
-                                destPos2=destPos2.tolist()
-                                #skip the first position where piece land on in last jump and continue to scan
-                                if destPos2!=destPos:
-                                    if self.checkValidPos(newSubCurState,destPos2):
-                                        jumpPos=self.jump(newSubCurState[:NRow],destPos2,player,isking)
-                                else:
-                                    jumpPos=self.jump(newSubCurState[:NRow],destPos2,player,isking)
-                                    if jumpPos!=[]:
-                                        #update pos
-                                        jumpPos=jumpPos[0]
-                                        #there are multi jump after first jumping, default action is first one(not required)
-                                        jumpPos[NRow][0]=pos[:]
-                                        newSubCurState=jumpPos
-                            newState.append(newSubCurState)
-                        elif cur[oppoPiecePos[0]][oppoPiecePos[1]]==player:
-                            break
-            return newState
-
-
     def simpleMove(self,cur,pos,player,isking=False):
         newState=[]
         if not isking:
@@ -226,50 +154,6 @@ class Draughts(Game):
                 newState.append(newCur)
         return newState
 
-    # pos is current piece scaned
-    def simpleMove_old(self,cur,pos,player,isking=False):
-        newState=[]
-        acts=self.moveBackAct if player==PLAYER1_SYMBOL else self.moveForwardAct
-        if not isking:
-            for act in np.array(acts):
-                newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
-                destPos=pos+act
-                if self.checkValidPos(newCur,destPos):
-                    #new board state
-                    newCur[destPos[0]][destPos[1]]=newCur[pos[0]][pos[1]]
-                    newCur[pos[0]][pos[1]]=DARK_SQUARE
-                    newCur.append([pos,destPos.tolist()])
-                    newState.append(newCur)
-            return newState    
-        else:
-            #king moving
-            acts=self.moveForwardAct+self.moveBackAct
-            acts=np.array(acts)
-            newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
-            destsPos=[]
-            for act in acts:
-                #start with current position and move diagonally, stop when obstacle encounter
-                for i in range(1,NRow):
-                    destPos=pos+act*i
-                    if self.checkValidPos(newCur,destPos):
-                        #new board state
-                        destsPos.append(destPos.tolist())
-            #Wherever square AI piece land on do not affect the value of evalFunction,So just choose it randomly.
-            #but list all actions for human player
-            if player==PLAYER2_SYMBOL:
-                for subpos in destsPos:
-                    newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
-                    newCur[subpos[0]][subpos[1]]=newCur[pos[0]][pos[1]]
-                    newCur[pos[0]][pos[1]]=DARK_SQUARE
-                    newCur.append([pos,subpos])
-                    newState.append(newCur)
-            else:
-                destPos=destsPos[np.random.randint(len(destsPos))]
-                newCur[destPos[0]][destPos[1]]=newCur[pos[0]][pos[1]]
-                newCur[pos[0]][pos[1]]=DARK_SQUARE
-                newCur.append([pos,destPos])
-                newState.append(newCur)
-            return newState
 
     #check and setup the men who can turn into king
     def Crown(self,cur):
@@ -340,11 +224,21 @@ class Draughts(Game):
         #Player 1 points 
         mensPoint=(cur==PLAYER1_SYMBOL).sum()
         kingsPoint=(cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).sum()*10
-        p1p=mensPoint+kingsPoint
+        player1_score=mensPoint+kingsPoint
+        
+        #favor to becoming a king 
+        for r in range(2,NRow):
+             player1_score+=(cur[r]==PLAYER1_SYMBOL).sum()
+
+
         #Player 2 points
         mensPoint=(cur==PLAYER2_SYMBOL).sum()
         kingsPoint=(cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).sum()*10
-        p2p=mensPoint+kingsPoint
+        player2_score=mensPoint+kingsPoint
+
+        #favor to becoming a king 
+        for r in range(4,-1,-1):
+             player2_score+=(cur[r]==PLAYER2_SYMBOL).sum()
 
         #strageties 
         #1. favoring no move when difference between the number of rows of the pieces equal 1
@@ -358,8 +252,9 @@ class Draughts(Game):
         for p1pos in p1TotalPos:
             for p2pos in p2TotalPos:
                 if p1pos[0]-p2pos[0]==1:
-                    p1p-=1
-        return p1p-p2p
+                    player1_score-=1
+
+        return player1_score-player2_score
 
         
 
