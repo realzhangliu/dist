@@ -39,12 +39,12 @@ class Game():
         return 0
     
 class Player():
-    isHuman=False
-    from_pos_input=()
-    to_pose_input=()
-    def __init__(self, piece,isHuman=False):
+    def __init__(self, piece,isHuman=False,nick_name="None"):
         self.isHuman=isHuman
         self.player_piece = piece
+        self.from_pos_input=()
+        self.to_pose_input=()
+        self.nick_name=nick_name
     
     @abstractmethod
     def chooseMove(self, game,possible_states):

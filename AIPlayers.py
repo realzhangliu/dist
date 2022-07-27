@@ -3,8 +3,8 @@ from Draughts import *
 import math
 
 class MiniMaxPlayer(Player):
-    def __init__(self, piece, initial_depth):
-        super().__init__(piece)
+    def __init__(self, piece, initial_depth,nick_name):
+        super().__init__(piece,False,nick_name)
         self.initial_depth = max(1, initial_depth)
         self.g=None
 
@@ -97,8 +97,8 @@ class MiniMaxPlayer(Player):
 
 
 class QLaerning(Player):
-    def __init__(self, piece, max_epoch):
-        super().__init__(piece)
+    def __init__(self, piece, max_epoch,nick_name):
+        super().__init__(piece,False,nick_name)
         self.max_epoch = max(1, max_epoch)
         self.g=None
     
@@ -129,8 +129,8 @@ class QLaerning(Player):
 
 
 class MCTS(Player):
-    def __init__(self, piece, max_epoch):
-        super().__init__(piece)
+    def __init__(self, piece, max_epoch,nick_name):
+        super().__init__(piece,False,nick_name)
         self.max_epoch = max(1, max_epoch)
         self.g=None
     
@@ -160,10 +160,9 @@ class MCTS(Player):
         return newState,newPos
 
 class Human(Player):
-    def __init__(self, piece,isHuman):
-        super().__init__(piece,isHuman)
+    def __init__(self, piece,isHuman,nick_name):
+        super().__init__(piece,isHuman,nick_name)
         self.g=None
-    
     def chooseMove(self, game,possible_states):
         self.g=game
         if self.from_pos_input==() or self.to_pose_input==():

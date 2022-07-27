@@ -1,5 +1,6 @@
 from glob import glob
 from multiprocessing import connection
+from re import T
 from shutil import move
 from turtle import pos
 import pygame
@@ -16,7 +17,9 @@ WIDTH, HEIGHT = 800, 400
 pygame.display.set_caption("Draughts with AI")
 FPS = 60
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-HEALTH_FONT = pygame.font.SysFont('comicsans', 40)
+HEALTH_FONT = pygame.font.SysFont('comicsans', 12)
+TUTOR_FONT = pygame.font.SysFont('comicsans', 24)
+OVER_FONT = pygame.font.SysFont('comicsans', 24)
 
 #game init
 WHITE = (240, 240, 240)
@@ -29,6 +32,7 @@ YELLOW = (255, 255, 0)
 GREY=(90,90,90)
 SQUARE_SIZE=50
 PIECE_RADIUS=50
+ROUND=6
 
 BKImg = pygame.image.load(os.path.join("Assets","BK.png"))
 BK=pygame.transform.scale(BKImg,(SQUARE_SIZE,SQUARE_SIZE))
@@ -54,6 +58,8 @@ KING_SIZE=4
 WHITE_SQUARE=pygame.Rect(0,0,50,50)
 PIECES_DICT={}
 
+
+
 class PIECE:
     def __init__(self):
         self.pos=()
@@ -68,49 +74,54 @@ class PIECE:
 
 FOCUS_PIECE_GRID_POS=()
 
-
-
-def update_draw():
+def update_draw(game,player):
     WIN.fill(BOARD)
+    if game.isOver:
+        #TODO
+        #wrong player name due to wrong game round
+        if game.winner == 0:
+            winner="DRAW"
+        else:
+            winner=player.nick_name
+        t=OVER_FONT.render(winner,1,BLACK)
+        WIN.blit(t,(350,150))
+    else:
     #board
-    for x in range(8):
-        for y in range(8):
-            if (x+y)%2==1:
-                obj=WHITE_SQUARE.copy()
-                obj.x=y*50
-                obj.y=x*50
-                pygame.draw.rect(WIN,GREY,obj)
-    #piece
-    for k in PIECES_DICT:
-        if PIECES_DICT[k].player==PLAYER1_SYMBOL:
-            if PIECES_DICT[k].isKing:
-                p=WIN.blit(RK,PIECES_DICT[k].pos)
-                PIECES_DICT[k].surface=p
-            else:
-                p=WIN.blit(RM,PIECES_DICT[k].pos)
-                PIECES_DICT[k].surface=p
-        elif PIECES_DICT[k].player==PLAYER2_SYMBOL:
-            if PIECES_DICT[k].isKing:
-                p=WIN.blit(BK,PIECES_DICT[k].pos)
-                PIECES_DICT[k].surface=p
-            else:
-                p=WIN.blit(BM,PIECES_DICT[k].pos)
-                PIECES_DICT[k].surface=p
-        #piece focus outline
-        if PIECES_DICT[k].isFocus:
-            pygame.draw.rect(WIN,WHITE,PIECES_DICT[k].surface,2)
-            #tips for movement 
-            for v in range(len(PIECES_DICT[k].move_tips_pieces)):
-                p=pygame.draw.rect(WIN,YELLOW,
-                (
-                    PIECES_DICT[k].move_tips_pieces[v].pos[0],
-                    PIECES_DICT[k].move_tips_pieces[v].pos[1],
-                    SQUARE_SIZE,SQUARE_SIZE),2)
-                PIECES_DICT[k].move_tips_pieces[v].surface=p
-                
-                
+        for x in range(8):
+            for y in range(8):
+                if (x+y)%2==1:
+                    obj=WHITE_SQUARE.copy()
+                    obj.x=y*50
+                    obj.y=x*50
+                    pygame.draw.rect(WIN,GREY,obj)
+        #piece
+        for k in PIECES_DICT:
+            if PIECES_DICT[k].player==PLAYER1_SYMBOL:
+                if PIECES_DICT[k].isKing:
+                    p=WIN.blit(RK,PIECES_DICT[k].pos)
+                    PIECES_DICT[k].surface=p
+                else:
+                    p=WIN.blit(RM,PIECES_DICT[k].pos)
+                    PIECES_DICT[k].surface=p
+            elif PIECES_DICT[k].player==PLAYER2_SYMBOL:
+                if PIECES_DICT[k].isKing:
+                    p=WIN.blit(BK,PIECES_DICT[k].pos)
+                    PIECES_DICT[k].surface=p
+                else:
+                    p=WIN.blit(BM,PIECES_DICT[k].pos)
+                    PIECES_DICT[k].surface=p
+            #piece focus outline
+            if PIECES_DICT[k].isFocus:
+                pygame.draw.rect(WIN,WHITE,PIECES_DICT[k].surface,2)
+                #tips for movement 
+                for v in range(len(PIECES_DICT[k].move_tips_pieces)):
+                    p=pygame.draw.rect(WIN,YELLOW,
+                    (
+                        PIECES_DICT[k].move_tips_pieces[v].pos[0],
+                        PIECES_DICT[k].move_tips_pieces[v].pos[1],
+                        SQUARE_SIZE,SQUARE_SIZE),2)
+                    PIECES_DICT[k].move_tips_pieces[v].surface=p
     return
-
 
 def draw_mouse(mouse_pos):
     txt="x:{0},y={1}".format(mouse_pos[0],mouse_pos[1])
@@ -207,14 +218,15 @@ def piece_focused(player,k,all_possible_moves):
 
     return
 
-
+def game_replay():
+    pass
 #EXAMPLES
 TURN_INTO_KING_1=[
     ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
-    ['_', '0', '_', '0', '_', '1', '_', '0'],
-    ['0', '_', '2', '_', '0', '_', '0', '_'],
-    ['_', '0', '_', '1', '_', '0', '_', '0'],
+    ['_', '1', '_', '0', '_', '0', '_', '0'],
+    ['0', '_', '22', '_', '0', '_', '0', '_'],
+    ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
     ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_']]
@@ -231,30 +243,52 @@ def print_ai_info(ai):
 #return game,2player
 def load_config(board=TURN_INTO_KING_1,P1="MINIMAX",P2="HUMAN"):
     global FOCUS_PIECE_GRID_POS
+    AIPLAYERS={
+    'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,10,"MINIMAX PLAYER"),
+    "Q":QLaerning(PLAYER1_SYMBOL,1000,"Q-Learning PLAYER"),
+    "MCTS":MCTS(PLAYER1_SYMBOL,1000,"MCTS PLAYER"),
+    "HUMAN":Human(PLAYER2_SYMBOL,True,"YOU")}
 
     game=Draughts(PLAYER2_SYMBOL,board)
     init_piece(game.board)
-    AIPLAYERS={
-        'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,4),
-        "Q":QLaerning(PLAYER1_SYMBOL,1000),
-        "MCTS":MCTS(PLAYER1_SYMBOL,1000),
-        "HUMAN":Human(PLAYER2_SYMBOL,True)}
 
     GAMEPLAYERS={
         PLAYER1_SYMBOL:AIPLAYERS[P1],
         PLAYER2_SYMBOL:AIPLAYERS[P2],
     }
-    return game,GAMEPLAYERS
+
+    clock = pygame.time.Clock()
+    while True:
+        clock.tick(FPS)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                run = False
+                pygame.quit()
+                return
+
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_SPACE:
+                    StartGame(game,GAMEPLAYERS)
+                    return
+
+        WIN.fill(WHITE)
+        tutorial_text=[
+            "1. This is a board game Draughts.",
+            "2. Feel free to play even without experience.",
+            "3. Your opponent is AI player and try the best to defeat it.",
+            "4. You should play 6 rounds to finish this test.",
+            "5. Follow the tips for further details.",
+            "6. Press [SPACE] to start"]
+        for i in range(len(tutorial_text)):
+            t=TUTOR_FONT.render(tutorial_text[i],1,BLACK)
+            WIN.blit(t,(WIN.get_rect().centerx-300,50+i*50))
+        pygame.display.update()
+
 
 
 #entry
-def main():
-    game,GAMEPLAYERS=load_config()
-
+def StartGame(game,GAMEPLAYERS):
     clock = pygame.time.Clock()
-    # selected_board=None
-    # selected_move=None
-    #contain of board and movement
     next_possbile_states=None
     while True:
         clock.tick(FPS)
@@ -273,7 +307,6 @@ def main():
                     game.update(selected_board,selected_move)
                     piece_dict_update(game.board)
                     next_possbile_states=None
-
         #EVENTS
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -300,12 +333,12 @@ def main():
             #test
             if event.type==pygame.KEYDOWN:
                 if event.key==pygame.K_SPACE:
-                    continue
+                    StartGame(game,GAMEPLAYERS)
 
             print(event)
 
         #Drawing
-        update_draw()
+        update_draw(game,player)
         draw_mouse(pygame.mouse.get_pos())                            
         pygame.display.flip()
 
@@ -313,4 +346,4 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    load_config()

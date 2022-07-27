@@ -15,6 +15,16 @@ SquareSize=50
 
 PieceDiameter=23
 
+class GameMatch:
+    def __init__(self) -> None:
+        self.steps=0
+        self.match=[]
+        self.board=[]
+        self.move=[]
+    def LoadGameMatche(self):
+        pass
+    def DumpGameMatch(self):
+        pass
 
 class Draughts(Game):
     
@@ -23,8 +33,9 @@ class Draughts(Game):
         self.board = self.generateGameBoard() if board==None else board
         self.winner=-1
         self.isOver=False
+        self.repeated_moves_p1=[]
+        self.repeated_moves_p2=[]
 
-        
     def generateGameBoard(self):
         blankBorad=[[(WHITE_SQUARE if y%2==0 else DARK_SQUARE )if x%2==0 else (DARK_SQUARE if y%2==0 else WHITE_SQUARE) for y in range(NColumn)] for x in range(NRow)]
         #init two players pieces , 12 on each side.
@@ -37,18 +48,26 @@ class Draughts(Game):
         return blankBorad
         
     
-    def update(self,newstate,pos):
-        newstate=self.Crown(newstate)
+    def update(self,newstate,move):
+        #
+        if len(self.repeated_moves_p1)>5:
+            self.repeated_moves_p1.pop(0)
+        if self.current_player==PLAYER1_SYMBOL:
+            self.repeated_moves_p1.append(move)
+
+        if len(self.repeated_moves_p2)>5:
+            self.repeated_moves_p2.pop(0)
+        if self.current_player==PLAYER2_SYMBOL:
+            self.repeated_moves_p2.append(move)
+
         self.current_player= PLAYER1_SYMBOL if self.current_player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
+        newstate=self.Crown(newstate)
         self.board=newstate
-    
-    def getMoves(self):
-        self.Movement()
-        return []
-    
+
+        
     def isGameOver(self):
         v=self.checkWhoWon(self.board)
-        if  v== PLAYER1_SYMBOL or v==PLAYER2_SYMBOL:
+        if  v!=-1:
             self.isOver=True
             self.winner=v
             return True
@@ -64,18 +83,18 @@ class Draughts(Game):
         if not (cur==PLAYER2_SYMBOL).any() and not (cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).any():
             #player 1 won
             return PLAYER1_SYMBOL
-
-        if ((cur==PLAYER1_SYMBOL).sum()==1 or (cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).sum()==1) and ((cur==PLAYER2_SYMBOL).sum()>1 or (cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).sum()>1):
-            return PLAYER2_SYMBOL
-
-        if ((cur==PLAYER2_SYMBOL).sum()==1 or (cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).sum()==1) and ((cur==PLAYER1_SYMBOL).sum()>1 or (cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).sum()>1):
-            return PLAYER1_SYMBOL
+        if len(self.repeated_moves_p2)==5:
+            if self.repeated_moves_p2[0]==self.repeated_moves_p2[4]:
+                return 0
+        if len(self.repeated_moves_p1)==5:
+            if self.repeated_moves_p1[0]==self.repeated_moves_p1[4]:
+                return 0
         #or by leaving the opponent with no legal move
         # if len(self.Movement(cur,PLAYER1_SYMBOL))>0 and len(self.Movement(cur,PLAYER2_SYMBOL))==0:
             # return PLAYER1_SYMBOL
         # if len(self.Movement(cur,PLAYER2_SYMBOL))>0 and len(self.Movement(cur,PLAYER1_SYMBOL))==0:
             # return PLAYER1_SYMBOL
-        return 0
+        return -1
     
     def getWinner(self):
         return self.checkWhoWon(self.board)

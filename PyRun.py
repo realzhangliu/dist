@@ -12,5 +12,5 @@ from Draughts import *
 
 #save data
 
-
-
+cfg=load_config()
+StartGame(cfg)
