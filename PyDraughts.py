@@ -74,17 +74,21 @@ class PIECE:
 
 FOCUS_PIECE_GRID_POS=()
 
+GAMEPLAYERS=None
+PLAYERLISTS=None
+
 def update_draw(game,player):
     WIN.fill(BOARD)
     if game.isOver:
-        #TODO
-        #wrong player name due to wrong game round
         if game.winner == 0:
             winner="DRAW"
         else:
-            winner=player.nick_name
-        t=OVER_FONT.render(winner,1,BLACK)
-        WIN.blit(t,(350,150))
+            winner=GAMEPLAYERS[game.winner].nick_name
+            winner+=" have won the game"
+        t=OVER_FONT.render(winner,1,RED)
+        WIN.blit(t,(170,130))
+        restart_txt=OVER_FONT.render("Press any KEY to continue",1,BLACK)
+        WIN.blit(restart_txt,(170,170))
     else:
     #board
         for x in range(8):
@@ -225,8 +229,8 @@ TURN_INTO_KING_1=[
     ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
     ['_', '1', '_', '0', '_', '0', '_', '0'],
-    ['0', '_', '22', '_', '0', '_', '0', '_'],
-    ['_', '0', '_', '0', '_', '0', '_', '0'],
+    ['0', '_', '0', '_', '0', '_', '0', '_'],
+    ['_', '2', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
     ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_']]
@@ -242,19 +246,19 @@ def print_ai_info(ai):
 #init game,ai player
 #return game,2player
 def load_config(board=TURN_INTO_KING_1,P1="MINIMAX",P2="HUMAN"):
-    global FOCUS_PIECE_GRID_POS
-    AIPLAYERS={
-    'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,10,"MINIMAX PLAYER"),
-    "Q":QLaerning(PLAYER1_SYMBOL,1000,"Q-Learning PLAYER"),
-    "MCTS":MCTS(PLAYER1_SYMBOL,1000,"MCTS PLAYER"),
+    global FOCUS_PIECE_GRID_POS,PLAYERLISTS,GAMEPLAYERS
+    PLAYERLISTS={
+    'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,10,"MINIMAX AI"),
+    "Q":QLaerning(PLAYER1_SYMBOL,1000,"Q-Learning AI"),
+    "MCTS":MCTS(PLAYER1_SYMBOL,1000,"MCTS AI"),
     "HUMAN":Human(PLAYER2_SYMBOL,True,"YOU")}
 
     game=Draughts(PLAYER2_SYMBOL,board)
     init_piece(game.board)
 
     GAMEPLAYERS={
-        PLAYER1_SYMBOL:AIPLAYERS[P1],
-        PLAYER2_SYMBOL:AIPLAYERS[P2],
+        PLAYER1_SYMBOL:PLAYERLISTS[P1],
+        PLAYER2_SYMBOL:PLAYERLISTS[P2],
     }
 
     clock = pygame.time.Clock()
@@ -266,19 +270,18 @@ def load_config(board=TURN_INTO_KING_1,P1="MINIMAX",P2="HUMAN"):
                 pygame.quit()
                 return
 
-            if event.type==pygame.KEYDOWN:
-                if event.key==pygame.K_SPACE:
-                    StartGame(game,GAMEPLAYERS)
-                    return
+            if event.type==pygame.KEYDOWN or event.type==pygame.MOUSEBUTTONDOWN:
+                StartGame(game,GAMEPLAYERS)
+                return
 
         WIN.fill(WHITE)
         tutorial_text=[
             "1. This is a board game Draughts.",
             "2. Feel free to play even without experience.",
-            "3. Your opponent is AI player and try the best to defeat it.",
+            "3. Your opponent is an AI player and try the best to defeat it.",
             "4. You should play 6 rounds to finish this test.",
             "5. Follow the tips for further details.",
-            "6. Press [SPACE] to start"]
+            "6. Press any  to start"]
         for i in range(len(tutorial_text)):
             t=TUTOR_FONT.render(tutorial_text[i],1,BLACK)
             WIN.blit(t,(WIN.get_rect().centerx-300,50+i*50))
@@ -334,6 +337,9 @@ def StartGame(game,GAMEPLAYERS):
             if event.type==pygame.KEYDOWN:
                 if event.key==pygame.K_SPACE:
                     StartGame(game,GAMEPLAYERS)
+            if (event.type==pygame.KEYDOWN or event.type==pygame.MOUSEBUTTONDOWN) and game.isOver:
+                load_config()
+                return
 
             print(event)
 
