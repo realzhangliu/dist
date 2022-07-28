@@ -1,23 +1,36 @@
+from turtle import pos
 from GameFramework import Player
 from Draughts import *
 import math
+from PyDraughtsConfig import *
+import time
 
 class MiniMaxPlayer(Player):
     def __init__(self, piece, initial_depth,nick_name):
         super().__init__(piece,False,nick_name)
         self.initial_depth = max(1, initial_depth)
         self.g=None
+        self.aiinfo=AIHELP(self)
+        self.value=-24
+        self.move=[]
+        self.tc=0
+        self.update_ai_info()
 
     def chooseMove(self, game,possible_states):
         self.g=game
         if self.g.current_player!=self.player_piece:
             raise ValueError('Wrong current player round.')
         # bestValue, bestMove = self.alphabeta(game, self.initial_depth, -self.INFINITY, self.INFINITY)
-        newState,newPos=self.MinimaxDecision(possible_states)
+        newState,newPos,value,time_count=self.MinimaxDecision(possible_states)
+        self.value=value
+        self.move=newPos
+        self.tc=time_count
+        self.update_ai_info()
         return newState,newPos
 
     #alpha beta algorithm implementation
     def MinimaxDecision(self,possible_states):
+        s_time=time.time()
         maxValue=-24
         newState=None
         newPos=[]
@@ -32,14 +45,14 @@ class MiniMaxPlayer(Player):
                 maxValue=val
                 newState=v
                 newPos=pos[:]
-        return newState,newPos
+        return newState,newPos,val,time.time()-s_time
 
     def MinValue(self,curState,alpha,beta,depth):
         #test won 
-        winner=self.g.checkWhoWon(curState)
+        winner=self.g.getWinner(curState)
         if winner==self.player_piece:
             return 20
-        if winner!=0 and winner!=self.player_piece:
+        if winner!=-1 and winner!=self.player_piece:
             return -20
         # if self.g.checkWhoWon(curState)==self.player_piece:
         #     return 20
@@ -66,10 +79,10 @@ class MiniMaxPlayer(Player):
 
 
     def MaxValue(self,curState,alpha,beta,depth):
-        winner=self.g.checkWhoWon(curState)
+        winner=self.g.getWinner(curState)
         if winner==self.player_piece:
             return 20
-        if winner!=0 and winner!=self.player_piece:
+        if winner!=-1 and winner!=self.player_piece:
             return -20
         #test won 
         # if self.g.checkWhoWon(curState)==self.player_piece:
@@ -94,6 +107,24 @@ class MiniMaxPlayer(Player):
                 alpha=val
         return maxValue
 
+
+    def update_ai_info(self):
+        self.aiinfo.ai_algorithm="ALGORITHM: MiniMax"
+        self.aiinfo.ai_algorithm_config="DEPTH: {0}".format(self.initial_depth)
+        if self.initial_depth<=4:
+            self.aiinfo.ai_level="DIFFICULTY: ESAY"
+        if self.initial_depth>4 and self.initial_depth<=7:
+            self.aiinfo.ai_level="DIFFICULTY: MEDIUM"
+        if self.initial_depth>7:
+            self.aiinfo.ai_level="DIFFICULTY: HARD"
+        self.aiinfo.ai_name="AI PLAYER: {0}".format(self.nick_name)
+        self.aiinfo.current_confidence="CONFIDENCE: {0}".format(self.value+24)
+        self.aiinfo.current_movement="MOVEMENT: {0}".format(self.move)
+        self.aiinfo.estimated_win_rate="WIN RATE: ~{0:.3f}%".format((self.value+24)/120*100)
+        self.aiinfo.process_time="DURATION: {0:.2f}s".format(round(self.tc))
+        return
+    def get_ai_help(self):
+        return self.aiinfo.get_info_text()
 
 
 class QLaerning(Player):

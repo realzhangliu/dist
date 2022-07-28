@@ -1,6 +1,7 @@
 from GameFramework import Game
 import numpy as np
 
+import copy
 
 PLAYER1_SYMBOL='1'
 PLAYER2_SYMBOL='2'
@@ -66,7 +67,7 @@ class Draughts(Game):
 
         
     def isGameOver(self):
-        v=self.checkWhoWon(self.board)
+        v=self.getWinner(self.board)
         if  v!=-1:
             self.isOver=True
             self.winner=v
@@ -74,7 +75,7 @@ class Draughts(Game):
         else:
             return False
     
-    def checkWhoWon(self,cur):
+    def getWinner(self,cur):
         cur=np.array(cur)
         #A player wins by capturing all of the opponent's pieces 
         if not (cur==PLAYER1_SYMBOL).any() and not (cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).any():
@@ -83,21 +84,22 @@ class Draughts(Game):
         if not (cur==PLAYER2_SYMBOL).any() and not (cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).any():
             #player 1 won
             return PLAYER1_SYMBOL
-        if len(self.repeated_moves_p2)==5:
-            if self.repeated_moves_p2[0]==self.repeated_moves_p2[4]:
-                return 0
-        if len(self.repeated_moves_p1)==5:
-            if self.repeated_moves_p1[0]==self.repeated_moves_p1[4]:
-                return 0
+        # if len(self.repeated_moves_p2)==5:
+        #     if self.repeated_moves_p2[0]==self.repeated_moves_p2[4]:
+        #         return 0
+        # if len(self.repeated_moves_p1)==5:
+        #     if self.repeated_moves_p1[0]==self.repeated_moves_p1[4]:
+        #         return 0
         #or by leaving the opponent with no legal move
         # if len(self.Movement(cur,PLAYER1_SYMBOL))>0 and len(self.Movement(cur,PLAYER2_SYMBOL))==0:
             # return PLAYER1_SYMBOL
         # if len(self.Movement(cur,PLAYER2_SYMBOL))>0 and len(self.Movement(cur,PLAYER1_SYMBOL))==0:
             # return PLAYER1_SYMBOL
+        if len(self.Movement(cur.tolist(),PLAYER1_SYMBOL))==0:
+            return PLAYER2_SYMBOL
+        if len(self.Movement(cur.tolist(),PLAYER2_SYMBOL))==0:
+            return PLAYER1_SYMBOL
         return -1
-    
-    def getWinner(self):
-        return self.checkWhoWon(self.board)
     
         #emnpty the captured square and move the piece
     def capture(self,cur,srcPos,destPos,capturedPos):
@@ -131,7 +133,8 @@ class Draughts(Game):
                 #check if is already being crowned
                 if cur[pos[0]][pos[1]]!=PLAYER1_SYMBOL+PLAYER1_SYMBOL and cur[pos[0]][pos[1]]!= PLAYER2_SYMBOL+PLAYER2_SYMBOL:
                     #crown this man and stop jumping
-                    newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
+                    # newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
+                    newCur=copy.deepcopy(cur)
                     newCur[pos[0]][pos[1]]+=newCur[pos[0]][pos[1]] # 11 or 22
                     newCur.append([pos,pos])
                     newState.append(newCur)
@@ -149,7 +152,8 @@ class Draughts(Game):
                 #opponent's piece exist
                 oppoPlayer=PLAYER1_SYMBOL if player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
                 if cur[oppoPiecePos[0]][oppoPiecePos[1]]==oppoPlayer or cur[oppoPiecePos[0]][oppoPiecePos[1]]==oppoPlayer+oppoPlayer:
-                    newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
+                    # newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
+                    newCur=copy.deepcopy(cur)
                     newSubCurState=self.capture(newCur,pos,destPos,oppoPiecePos)
                     newSubCurState.append([pos,destPos.tolist()])
                     #current state
@@ -173,10 +177,10 @@ class Draughts(Game):
         else:
             acts=self.MoveAct
         for act in np.array(acts):
-            newCur=[[cur[x][y] for y in range(NColumn)]for x in range(NRow)]
             destPos=pos+act
-            if self.checkValidPos(newCur,destPos):
+            if self.checkValidPos(cur,destPos):
                 #new board state
+                newCur=copy.deepcopy(cur)
                 newCur[destPos[0]][destPos[1]]=newCur[pos[0]][pos[1]]
                 newCur[pos[0]][pos[1]]=DARK_SQUARE
                 newCur.append([pos,destPos.tolist()])
@@ -199,9 +203,6 @@ class Draughts(Game):
 
     #return all available positions
     def ScanAround(self,curState,pos,player):
-        #king
-        #curState=Crown(curState)
-        #jumping detect
         newState=list()
         if curState[pos[0]][pos[1]]==player+player:
             v=self.jump(curState,pos,player,True)
@@ -227,15 +228,14 @@ class Draughts(Game):
     #return every available board states  
     def Movement(self,curState,player):
         #loop every piece
-        self.board=curState
         curState=self.Crown(curState)
+        self.board=curState
         newCurState=list()
         jumpNewCurState=list()
         for row in range(NRow):
             for column in range(NColumn):
                 if curState[row][column]==player or curState[row][column]==player+player:
-                    #check position where can reach
-                    newState=[[curState[x][y] for y in range(NColumn)]for x in range(NRow)]
+                    newState=copy.deepcopy(curState)
                     c,isJump=self.ScanAround(newState[:NRow],[row,column],player)
                     if c!=[]:
                         if isJump:
