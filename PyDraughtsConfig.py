@@ -134,3 +134,8 @@ class AIHELP:
         self.current_movement,
         self.current_movement_desc,
         ]
+
+#game replay
+class ReplayClass:
+    def __init__(self) -> None:
+        pass

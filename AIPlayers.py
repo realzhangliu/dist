@@ -27,7 +27,7 @@ class MiniMaxPlayer(Player):
         self.tc=time_count
         self.update_ai_info()
         #change level
-        if (self.value+24)/48*100<30 and self.initial_depth<7:
+        if (self.value+24)/48*100<50 and self.initial_depth<5:
             self.initial_depth+=1
         return newState,newPos
 
@@ -101,17 +101,17 @@ class MiniMaxPlayer(Player):
     def update_ai_info(self):
         self.aiinfo.ai_algorithm="ALGORITHM: MiniMax"
         self.aiinfo.ai_algorithm_config="DEPTH: {0}".format(self.initial_depth)
-        if self.initial_depth<=3:
+        if self.initial_depth<=2:
             self.aiinfo.ai_level="DIFFICULTY: ESAY"
-        if self.initial_depth>3 and self.initial_depth<=5:
+        if self.initial_depth>2 and self.initial_depth<=4:
             self.aiinfo.ai_level="DIFFICULTY: MEDIUM"
-        if self.initial_depth>5:
+        if self.initial_depth>4:
             self.aiinfo.ai_level="DIFFICULTY: HARD"
         self.aiinfo.ai_name="AI PLAYER: {0}".format(self.nick_name)
         self.aiinfo.current_confidence="CONFIDENCE: {0}".format(self.value+24)
         self.aiinfo.current_movement="MOVEMENT: {0}".format(self.move)
-        self.aiinfo.estimated_win_rate="WINNING RATE: {0:.3f}%".format((self.value+24)/48*100)
-        self.aiinfo.process_time="DURATION: {0:.2f}s".format(round(self.tc))
+        self.aiinfo.estimated_win_rate="WINNING RATE: {0:.2f}%".format((self.value+24)/48*100)
+        self.aiinfo.process_time="DURATION: {0:.3f}s".format(self.tc)
         return
     def get_ai_help(self):
         return self.aiinfo.get_info_text()
