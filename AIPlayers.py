@@ -54,17 +54,11 @@ class MiniMaxPlayer(Player):
             return 20
         if winner!=-1 and winner!=self.player_piece:
             return -20
-        # if self.g.checkWhoWon(curState)==self.player_piece:
-        #     return 20
-        # if self.g.checkWhoWon(curState)!=self.player_piece:
-        #     return -20
         # draw ?, AI never give up
-        #test eval
         if depth==0:
             return self.g.evalState(curState)
         minValue=24
         
-        # opponent= PLAYER2_SYMBOL if self.player_piece==PLAYER1_SYMBOL else PLAYER1_SYMBOL
         opponent=PLAYER2_SYMBOL if self.g.current_player==PLAYER1_SYMBOL else PLAYER2_SYMBOL
         for v in self.g.Movement(curState, opponent):
             v=v[:NRow]
@@ -84,17 +78,10 @@ class MiniMaxPlayer(Player):
             return 20
         if winner!=-1 and winner!=self.player_piece:
             return -20
-        #test won 
-        # if self.g.checkWhoWon(curState)==self.player_piece:
-        #     return 20
-        # if self.g.checkWhoWon(curState)!=self.player_piece:
-        #     return -20
-        # draw ?, AI never give up
         #test eval
         if depth==0:
             return self.g.evalState(curState)
         maxValue=-20
-        # ally= PLAYER1_SYMBOL if self.player_piece==PLAYER1_SYMBOL else PLAYER2_SYMBOL
         me=PLAYER1_SYMBOL if self.g.current_player==PLAYER1_SYMBOL else PLAYER2_SYMBOL
         for v in self.g.Movement(curState,me):
             v=v[:NRow]
@@ -111,16 +98,16 @@ class MiniMaxPlayer(Player):
     def update_ai_info(self):
         self.aiinfo.ai_algorithm="ALGORITHM: MiniMax"
         self.aiinfo.ai_algorithm_config="DEPTH: {0}".format(self.initial_depth)
-        if self.initial_depth<=4:
+        if self.initial_depth<=3:
             self.aiinfo.ai_level="DIFFICULTY: ESAY"
-        if self.initial_depth>4 and self.initial_depth<=7:
+        if self.initial_depth>3 and self.initial_depth<=5:
             self.aiinfo.ai_level="DIFFICULTY: MEDIUM"
-        if self.initial_depth>7:
+        if self.initial_depth>5:
             self.aiinfo.ai_level="DIFFICULTY: HARD"
         self.aiinfo.ai_name="AI PLAYER: {0}".format(self.nick_name)
         self.aiinfo.current_confidence="CONFIDENCE: {0}".format(self.value+24)
         self.aiinfo.current_movement="MOVEMENT: {0}".format(self.move)
-        self.aiinfo.estimated_win_rate="WIN RATE: ~{0:.3f}%".format((self.value+24)/120*100)
+        self.aiinfo.estimated_win_rate="WINNING RATE: {0:.3f}%".format((self.value+24)/48*100)
         self.aiinfo.process_time="DURATION: {0:.2f}s".format(round(self.tc))
         return
     def get_ai_help(self):

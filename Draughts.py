@@ -95,10 +95,10 @@ class Draughts(Game):
             # return PLAYER1_SYMBOL
         # if len(self.Movement(cur,PLAYER2_SYMBOL))>0 and len(self.Movement(cur,PLAYER1_SYMBOL))==0:
             # return PLAYER1_SYMBOL
-        if len(self.Movement(cur.tolist(),PLAYER1_SYMBOL))==0:
-            return PLAYER2_SYMBOL
-        if len(self.Movement(cur.tolist(),PLAYER2_SYMBOL))==0:
-            return PLAYER1_SYMBOL
+        # if len(self.Movement(cur.tolist(),PLAYER1_SYMBOL))==0:
+            # return PLAYER2_SYMBOL
+        # if len(self.Movement(cur.tolist(),PLAYER2_SYMBOL))==0:
+            # return PLAYER1_SYMBOL
         return -1
     
         #emnpty the captured square and move the piece

@@ -205,7 +205,7 @@ TEST_GAME_STATE=[
 
 #init game,ai player
 #return game,2player
-def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
+def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
 
     global FOCUS_PIECE_GRID_POS,PLAYERLISTS,GAMEPLAYERS,ROUND
 
