@@ -26,6 +26,9 @@ class MiniMaxPlayer(Player):
         self.move=newPos
         self.tc=time_count
         self.update_ai_info()
+        #change level
+        if (self.value+24)/48*100<30 and self.initial_depth<7:
+            self.initial_depth+=1
         return newState,newPos
 
     #alpha beta algorithm implementation
