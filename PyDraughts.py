@@ -21,82 +21,97 @@ def piece_location(x):
     return x*PIECE_RADIUS+PIECE_RADIUS/2
 
 def update_draw(game):
+    global GAME_CURRENT_FUNCTION
     WIN.fill(BOARD)
-    if game.isOver:
-        if game.winner == 0:
-            winner="DRAW"
-        else:
-            winner=GAMEPLAYERS[game.winner].nick_name
-            winner+=" have won the game"
-        t=OVER_FONT.render(winner,1,RED)
-        WIN.blit(t,(170,130))
-        restart_txt=OVER_FONT.render("Press any KEY to continue",1,BLACK)
-        WIN.blit(restart_txt,(170,170))
-    else:
     #board
-        for x in range(8):
-            for y in range(8):
-                if (x+y)%2==1:
-                    obj=WHITE_SQUARE_RECT.copy()
-                    obj.x=y*50
-                    obj.y=x*50
-                    pygame.draw.rect(WIN,GREY,obj)
-                    #board mark
-                    mark_t=BOARD_MARK_FONT.render("{0},{1}".format(x,y),1,BOARD_MARK)
-                    WIN.blit(mark_t,(y*50,x*50))
-        #piece
-        for k in PIECES_DICT:
-            if PIECES_DICT[k].player==PLAYER1_SYMBOL:
-                if PIECES_DICT[k].isKing:
-                    p=WIN.blit(RK,PIECES_DICT[k].pos)
-                    PIECES_DICT[k].surface=p
-                else:
-                    p=WIN.blit(RM,PIECES_DICT[k].pos)
-                    PIECES_DICT[k].surface=p
-            elif PIECES_DICT[k].player==PLAYER2_SYMBOL:
-                if PIECES_DICT[k].isKing:
-                    p=WIN.blit(BK,PIECES_DICT[k].pos)
-                    PIECES_DICT[k].surface=p
-                else:
-                    p=WIN.blit(BM,PIECES_DICT[k].pos)
-                    PIECES_DICT[k].surface=p
-            #piece focus outline
-            if PIECES_DICT[k].isFocus:
-                pygame.draw.rect(WIN,WHITE,PIECES_DICT[k].surface,2)
-                #tips for movement 
-                for v in range(len(PIECES_DICT[k].move_tips_pieces)):
-                    p=pygame.draw.rect(WIN,YELLOW,
-                    (
-                        PIECES_DICT[k].move_tips_pieces[v].pos[0],
-                        PIECES_DICT[k].move_tips_pieces[v].pos[1],
-                        SQUARE_SIZE,SQUARE_SIZE),2)
-                    PIECES_DICT[k].move_tips_pieces[v].surface=p
+    for x in range(8):
+        for y in range(8):
+            if (x+y)%2==1:
+                obj=WHITE_SQUARE_RECT.copy()
+                obj.x=y*50
+                obj.y=x*50
+                pygame.draw.rect(WIN,GREY,obj)
+                #board mark
+                mark_t=BOARD_MARK_FONT.render("{0},{1}".format(x,y),1,BOARD_MARK)
+                WIN.blit(mark_t,(y*50,x*50))
+    #piece
+    for k in PIECES_DICT:
+        if PIECES_DICT[k].player==PLAYER1_SYMBOL:
+            if PIECES_DICT[k].isKing:
+                p=WIN.blit(RK,PIECES_DICT[k].pos)
+                PIECES_DICT[k].surface=p
+            else:
+                p=WIN.blit(RM,PIECES_DICT[k].pos)
+                PIECES_DICT[k].surface=p
+        elif PIECES_DICT[k].player==PLAYER2_SYMBOL:
+            if PIECES_DICT[k].isKing:
+                p=WIN.blit(BK,PIECES_DICT[k].pos)
+                PIECES_DICT[k].surface=p
+            else:
+                p=WIN.blit(BM,PIECES_DICT[k].pos)
+                PIECES_DICT[k].surface=p
+        #piece focus outline
+        if PIECES_DICT[k].isFocus:
+            pygame.draw.rect(WIN,WHITE,PIECES_DICT[k].surface,2)
+            #tips for movement 
+            for v in range(len(PIECES_DICT[k].move_tips_pieces)):
+                p=pygame.draw.rect(WIN,YELLOW,
+                (
+                    PIECES_DICT[k].move_tips_pieces[v].pos[0],
+                    PIECES_DICT[k].move_tips_pieces[v].pos[1],
+                    SQUARE_SIZE,SQUARE_SIZE),2)
+                PIECES_DICT[k].move_tips_pieces[v].surface=p
+    #board coordination
+    for x in range(8):
+        for y in range(8):
+            if (x+y)%2==1:
+                #board mark
+                mark_t=BOARD_MARK_FONT.render("{0},{1}".format(x,y),1,BOARD_MARK)
+                WIN.blit(mark_t,(y*50,x*50))
 
-        for x in range(8):
-            for y in range(8):
-                if (x+y)%2==1:
-                    #board mark
-                    mark_t=BOARD_MARK_FONT.render("{0},{1}".format(x,y),1,BOARD_MARK)
-                    WIN.blit(mark_t,(y*50,x*50))
-        #tips
-        y_axis=2
-        if ROUND in ENABLE_AI_HELP:
-            lables=GAMEPLAYERS["1"].get_ai_help()
-            for i in range(len(lables)):
-                if i%2!=1:
-                    t=TIP_FONT.render(lables[i],1,BLACK)
-                    WIN.blit(t,(WIN.get_rect().centerx+10,y_axis))
-                    y_axis+=15
-                else:
-                    t=BOARD_MARK_FONT.render(lables[i],1,GREY)
-                    WIN.blit(t,(WIN.get_rect().centerx+10,y_axis))
-                    y_axis+=30
+    if GAME_CURRENT_FUNCTION==0:
+    #game end drawing
+        if game.isOver:
+            if game.winner == 0:
+                winner="DRAW"
+            else:
+                winner=GAMEPLAYERS[game.winner].nick_name
+                winner+=" have won the game"
+            t=OVER_FONT.render(winner,1,RED)
+            WIN.blit(t,(WIN.get_rect().centerx,50))
+            restart_txt=OVER_FONT.render("Press any KEY to continue",1,BLACK)
+            WIN.blit(restart_txt,(WIN.get_rect().centerx,100))
         else:
-            title=TIP_FONT.render("AI HELP DISABLE",1,BLACK)
-            WIN.blit(title,(WIN.get_rect().centerx+10,y_axis))
-            y_axis+=20
-        round_t=TIP_FONT.render("ROUNDS: {0}".format(REVERSE_ROUND+1),1,BLACK)
-        WIN.blit(round_t,(WIN.get_rect().centerx+10,y_axis))
+        #tips
+            y_axis=2
+            if REVERSE_ROUND+1 in ENABLE_AI_HELP:
+                lables=GAMEPLAYERS["1"].get_ai_help()
+                for i in range(len(lables)):
+                    if i%2!=1:
+                        t=TIP_FONT.render(lables[i],1,BLACK)
+                        WIN.blit(t,(WIN.get_rect().centerx+10,y_axis))
+                        y_axis+=15
+                    else:
+                        t=BOARD_MARK_FONT.render(lables[i],1,GREY)
+                        WIN.blit(t,(WIN.get_rect().centerx+10,y_axis))
+                        y_axis+=30
+            else:
+                title=TIP_FONT.render("AI HELP DISABLE",1,BLACK)
+                WIN.blit(title,(WIN.get_rect().centerx+10,y_axis))
+                y_axis+=20
+            round_t=TIP_FONT.render("ROUNDS: {0}".format(REVERSE_ROUND+1),1,BLACK)
+            WIN.blit(round_t,(WIN.get_rect().centerx+10,y_axis))
+
+    if GAME_CURRENT_FUNCTION==1:
+        replay_text=[
+            "GAME REPLAY MODE",
+            "Review the movements",
+            "LEFT MOUSE BUTTON to move forward",
+            "RIGHT MOUSE BUTTON to move back"]
+        for i in range(len(replay_text)):
+            t=TIP_FONT.render(replay_text[i],1,BLACK)
+            WIN.blit(t,(WIN.get_rect().centerx,50+i*50))
+            
     return
 
 def draw_mouse(mouse_pos):
@@ -211,9 +226,7 @@ TEST_GAME_STATE=[
 #return game,2player22
 def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
 
-    global FOCUS_PIECE_GRID_POS,PLAYERLISTS,GAMEPLAYERS,ROUND
-
-    replay_util=ReplayUtil()
+    global FOCUS_PIECE_GRID_POS,PLAYERLISTS,GAMEPLAYERS,ROUND,REVERSE_ROUND,GAME_CURRENT_FUNCTION
 
     clock = pygame.time.Clock()
     while True:
@@ -226,7 +239,6 @@ def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
                 if event.key==pygame.K_ESCAPE:
                     pygame.quit()
                     return
-                    
             if ROUND>0:
                 if event.type==pygame.KEYDOWN or event.type==pygame.MOUSEBUTTONDOWN:
                     PLAYERLISTS={
@@ -239,15 +251,22 @@ def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
                         PLAYER1_SYMBOL:PLAYERLISTS[P1],
                         PLAYER2_SYMBOL:PLAYERLISTS[P2],
                     }
-                    #game replay
                     game=Draughts(PLAYER2_SYMBOL,board)
                     init_piece(game.board)
-                    StartGame(game,GAMEPLAYERS,replay_util)
+                    StartGame(game,GAMEPLAYERS,REPLAY_UTIL)
+                    #game replay
+                    if REVERSE_ROUND+1 in ENABLE_AI_HELP:
+                        GAME_CURRENT_FUNCTION=1
+                        StartReplay(REVERSE_ROUND)
+                        GAME_CURRENT_FUNCTION=0
+                    #move on next round
+                    ROUND-=1
+                    REVERSE_ROUND+=1
             else:
                 # dump replay data
                 letters = string.ascii_lowercase
                 id=''.join(random.choice(letters) for i in range(10))
-                replay_util.save_to_file(os.path.join("./data","{0}.json".format(id)))
+                REPLAY_UTIL.save_to_file(os.path.join("./data","{0}.json".format(id)))
                 pygame.quit()
                 return
 
@@ -255,10 +274,9 @@ def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
         tutorial_text=[
             "1. This is a board game Draughts.",
             "2. Feel free to play even without experience.",
-            "3. Your opponent is an AI player and try the best to defeat it.",
-            "4. You should play {0} round(s) to finish this test.".format(ROUND),
-            "5. Follow the tips for further details.",
-            "6. Press any KEY to start or ESC to quit."]
+            "3. You should play {0} round(s) to finish this test.".format(ROUND),
+            "4. AI tips prompts and game replays will help you get learned",
+            "5. Press any KEY to start or ESC to quit."]
         for i in range(len(tutorial_text)):
             t=TUTOR_FONT.render(tutorial_text[i],1,BLACK)
             WIN.blit(t,(WIN.get_rect().centerx-350,50+i*50))
@@ -321,8 +339,6 @@ def StartGame(game,GAMEPLAYERS,replay_util):
             if (event.type==pygame.KEYDOWN or event.type==pygame.MOUSEBUTTONDOWN) and game.isOver:
                 #replay add this game
                 replay_util.append_game(REVERSE_ROUND)
-                ROUND-=1
-                REVERSE_ROUND+=1
                 return
             print(event)
 
@@ -331,8 +347,34 @@ def StartGame(game,GAMEPLAYERS,replay_util):
         draw_mouse(pygame.mouse.get_pos())                            
         pygame.display.flip()
 
-    main()
+def StartReplay(round):
+    run=True
+    game=Draughts(PLAYER2_SYMBOL)
+    games,len_steps=REPLAY_UTIL.get_this_round_games(round)
+    index=0
+    piece_dict_update(games[index])
+    while run:
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                return
+
+            if event.type==pygame.MOUSEBUTTONDOWN:
+                if event.button==1:
+                    if index==len_steps-1:
+                        return
+
+                    if index<len_steps-1:
+                        index+=1
+                    piece_dict_update(games[index])
 
 
+                if event.button==3:
+                    if index>0:
+                        index-=1
+                    piece_dict_update(games[index])
+
+        update_draw(game)
+        pygame.display.update()
+    pass
 if __name__ == "__main__":
     load_config()

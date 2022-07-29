@@ -30,6 +30,8 @@ PIECE_RADIUS=50
 
 ROUND=3
 REVERSE_ROUND=0
+#0=normal 1=game replay
+GAME_CURRENT_FUNCTION=0
 # specify the index of round that enable AI HELP
 ENABLE_AI_HELP=[2]
 
@@ -69,6 +71,8 @@ FOCUS_PIECE_GRID_POS=()
 
 GAMEPLAYERS=None
 PLAYERLISTS=None
+
+
 
 class AIHELP:
     def __init__(self,player) -> None:
@@ -166,6 +170,12 @@ class ReplayUtil:
             }
         ]
 
+    def get_this_round_games(self,current_round):
+        board=[]
+        for v in self.round[current_round]["data"]["steps"]:
+            board.append(v["board"])
+        return board,len(board)
+
     #collect every movement
     def append_step(self,round,board,move,winning_rate=0,difficulty="None",algorithm="None"):
         if len(self.round)<round+1:
@@ -215,4 +225,6 @@ class ReplayUtil:
             json.dump(self.round, f,sort_keys=True, indent=4)
         return
 
-        
+
+
+REPLAY_UTIL=ReplayUtil()
