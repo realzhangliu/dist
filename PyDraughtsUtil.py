@@ -28,8 +28,10 @@ GREY=(90,90,90)
 SQUARE_SIZE=50
 PIECE_RADIUS=50
 
-ROUND=2
+ROUND=3
 REVERSE_ROUND=0
+# specify the index of round that enable AI HELP
+ENABLE_AI_HELP=[2]
 
 WHITE_SQUARE_RECT=pygame.Rect(0,0,50,50)
 

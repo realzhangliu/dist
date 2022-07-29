@@ -79,24 +79,28 @@ def update_draw(game):
                     mark_t=BOARD_MARK_FONT.render("{0},{1}".format(x,y),1,BOARD_MARK)
                     WIN.blit(mark_t,(y*50,x*50))
         #tips
-        lables=GAMEPLAYERS["1"].get_ai_help()
         y_axis=2
-        for i in range(len(lables)):
-            if i%2!=1:
-                t=TIP_FONT.render(lables[i],1,BLACK)
-                WIN.blit(t,(WIN.get_rect().centerx+10,y_axis))
-                y_axis+=15
-            else:
-                t=BOARD_MARK_FONT.render(lables[i],1,GREY)
-                WIN.blit(t,(WIN.get_rect().centerx+10,y_axis))
-                y_axis+=30
-        round_t=TIP_FONT.render("ROUNDS: {0}".format(ROUND),1,BLACK)
+        if ROUND in ENABLE_AI_HELP:
+            lables=GAMEPLAYERS["1"].get_ai_help()
+            for i in range(len(lables)):
+                if i%2!=1:
+                    t=TIP_FONT.render(lables[i],1,BLACK)
+                    WIN.blit(t,(WIN.get_rect().centerx+10,y_axis))
+                    y_axis+=15
+                else:
+                    t=BOARD_MARK_FONT.render(lables[i],1,GREY)
+                    WIN.blit(t,(WIN.get_rect().centerx+10,y_axis))
+                    y_axis+=30
+        else:
+            title=TIP_FONT.render("AI HELP DISABLE",1,BLACK)
+            WIN.blit(title,(WIN.get_rect().centerx+10,y_axis))
+            y_axis+=20
+        round_t=TIP_FONT.render("ROUNDS: {0}".format(REVERSE_ROUND+1),1,BLACK)
         WIN.blit(round_t,(WIN.get_rect().centerx+10,y_axis))
-            
-            
     return
 
 def draw_mouse(mouse_pos):
+    return
     txt="x:{0},y={1}".format(mouse_pos[0],mouse_pos[1])
     draw_mouse_pos_text=HEALTH_FONT.render(txt,1,BLACK)
     WIN.blit(draw_mouse_pos_text,mouse_pos)
@@ -222,9 +226,9 @@ def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
                 if event.key==pygame.K_ESCAPE:
                     pygame.quit()
                     return
-
-            if event.type==pygame.KEYDOWN or event.type==pygame.MOUSEBUTTONDOWN:
-                if ROUND>0:
+                    
+            if ROUND>0:
+                if event.type==pygame.KEYDOWN or event.type==pygame.MOUSEBUTTONDOWN:
                     PLAYERLISTS={
                     'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,1,"MINIMAX AI"),
                     "Q":QLaerning(PLAYER1_SYMBOL,1000,"Q-Learning AI"),
@@ -239,13 +243,13 @@ def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
                     game=Draughts(PLAYER2_SYMBOL,board)
                     init_piece(game.board)
                     StartGame(game,GAMEPLAYERS,replay_util)
-                else:
-                    # dump replay data
-                    letters = string.ascii_lowercase
-                    id=''.join(random.choice(letters) for i in range(10))
-                    replay_util.save_to_file(os.path.join("./data","{0}.json".format(id)))
-                    pygame.quit()
-                    return
+            else:
+                # dump replay data
+                letters = string.ascii_lowercase
+                id=''.join(random.choice(letters) for i in range(10))
+                replay_util.save_to_file(os.path.join("./data","{0}.json".format(id)))
+                pygame.quit()
+                return
 
         WIN.fill(WHITE)
         tutorial_text=[
