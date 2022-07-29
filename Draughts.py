@@ -1,6 +1,6 @@
 from GameFramework import Game
 import numpy as np
-
+from PyDraughtsUtil import *
 import copy
 
 PLAYER1_SYMBOL='1'
@@ -16,17 +16,6 @@ SquareSize=50
 
 PieceDiameter=23
 
-class GameMatch:
-    def __init__(self) -> None:
-        self.steps=0
-        self.match=[]
-        self.board=[]
-        self.move=[]
-    def LoadGameMatche(self):
-        pass
-    def DumpGameMatch(self):
-        pass
-
 class Draughts(Game):
     
     def __init__(self,player,board=None):
@@ -34,8 +23,6 @@ class Draughts(Game):
         self.board = self.generateGameBoard() if board==None else board
         self.winner=-1
         self.isOver=False
-        self.repeated_moves_p1=[]
-        self.repeated_moves_p2=[]
 
     def generateGameBoard(self):
         blankBorad=[[(WHITE_SQUARE if y%2==0 else DARK_SQUARE )if x%2==0 else (DARK_SQUARE if y%2==0 else WHITE_SQUARE) for y in range(NColumn)] for x in range(NRow)]
@@ -50,17 +37,6 @@ class Draughts(Game):
         
     
     def update(self,newstate,move):
-        #
-        if len(self.repeated_moves_p1)>5:
-            self.repeated_moves_p1.pop(0)
-        if self.current_player==PLAYER1_SYMBOL:
-            self.repeated_moves_p1.append(move)
-
-        if len(self.repeated_moves_p2)>5:
-            self.repeated_moves_p2.pop(0)
-        if self.current_player==PLAYER2_SYMBOL:
-            self.repeated_moves_p2.append(move)
-
         self.current_player= PLAYER1_SYMBOL if self.current_player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
         newstate=self.Crown(newstate)
         self.board=newstate

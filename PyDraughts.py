@@ -9,7 +9,9 @@ import os
 from GameFramework import *
 from Draughts import *
 from AIPlayers import *
-from PyDraughtsConfig import *
+from PyDraughtsUtil import *
+import random
+import string
 
 #game utils
 def location(x):
@@ -189,8 +191,6 @@ def piece_focused(player,k,all_possible_moves):
 
     return
 
-def game_replay():
-    pass
 #EXAMPLES
 TEST_GAME_STATE=[
     ['_', '0', '_', '0', '_', '0', '_', '0'],
@@ -205,10 +205,11 @@ TEST_GAME_STATE=[
 
 #init game,ai player
 #return game,2player22
-def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
+def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
 
     global FOCUS_PIECE_GRID_POS,PLAYERLISTS,GAMEPLAYERS,ROUND
 
+    replay_util=ReplayUtil()
 
     clock = pygame.time.Clock()
     while True:
@@ -234,10 +235,15 @@ def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
                         PLAYER1_SYMBOL:PLAYERLISTS[P1],
                         PLAYER2_SYMBOL:PLAYERLISTS[P2],
                     }
+                    #game replay
                     game=Draughts(PLAYER2_SYMBOL,board)
                     init_piece(game.board)
-                    StartGame(game,GAMEPLAYERS)
+                    StartGame(game,GAMEPLAYERS,replay_util)
                 else:
+                    # dump replay data
+                    letters = string.ascii_lowercase
+                    id=''.join(random.choice(letters) for i in range(10))
+                    replay_util.save_to_file(os.path.join("./data","{0}.json".format(id)))
                     pygame.quit()
                     return
 
@@ -248,7 +254,7 @@ def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
             "3. Your opponent is an AI player and try the best to defeat it.",
             "4. You should play {0} round(s) to finish this test.".format(ROUND),
             "5. Follow the tips for further details.",
-            "6. Press any KEY to starto or ESC to quit."]
+            "6. Press any KEY to start or ESC to quit."]
         for i in range(len(tutorial_text)):
             t=TUTOR_FONT.render(tutorial_text[i],1,BLACK)
             WIN.blit(t,(WIN.get_rect().centerx-350,50+i*50))
@@ -256,10 +262,13 @@ def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
 
 
 #entry
-def StartGame(game,GAMEPLAYERS):
-    global ROUND
+def StartGame(game,GAMEPLAYERS,replay_util):
+    global ROUND,REVERSE_ROUND
     clock = pygame.time.Clock()
     next_possbile_states=None
+
+    replay_util.append_step(REVERSE_ROUND,game.board,[])
+
     while True:
         clock.tick(FPS)
         player=GAMEPLAYERS[game.current_player]
@@ -277,6 +286,9 @@ def StartGame(game,GAMEPLAYERS):
                     game.update(selected_board,selected_move)
                     piece_dict_update(game.board)
                     next_possbile_states=None
+                    #replay add every step
+                    replay_util.append_step(REVERSE_ROUND,selected_board,selected_move)
+
         #EVENTS
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -303,7 +315,10 @@ def StartGame(game,GAMEPLAYERS):
 
 
             if (event.type==pygame.KEYDOWN or event.type==pygame.MOUSEBUTTONDOWN) and game.isOver:
+                #replay add this game
+                replay_util.append_game(REVERSE_ROUND)
                 ROUND-=1
+                REVERSE_ROUND+=1
                 return
             print(event)
 

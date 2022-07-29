@@ -2,7 +2,7 @@ from turtle import pos
 from GameFramework import Player
 from Draughts import *
 import math
-from PyDraughtsConfig import *
+from PyDraughtsUtil import *
 import time
 
 class MiniMaxPlayer(Player):

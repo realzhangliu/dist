@@ -5,6 +5,7 @@ class Game():
     @abstractmethod
     def __init__(self):
         self.current_player = None
+        self.round=0
     
     @abstractmethod
     def update(self, move):

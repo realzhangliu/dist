@@ -1,3 +1,4 @@
+import re
 import pygame
 import os
 
@@ -26,7 +27,9 @@ YELLOW = (255, 255, 0)
 GREY=(90,90,90)
 SQUARE_SIZE=50
 PIECE_RADIUS=50
-ROUND=6
+
+ROUND=2
+REVERSE_ROUND=0
 
 WHITE_SQUARE_RECT=pygame.Rect(0,0,50,50)
 
@@ -135,7 +138,79 @@ class AIHELP:
         self.current_movement_desc,
         ]
 
+import json
 #game replay
-class ReplayClass:
+#store game & load game
+class ReplayUtil:
     def __init__(self) -> None:
-        pass
+        #for each game round
+        self.step={
+                    "board":[],
+                    "move":[],
+                    "ai_winning_rate":0,
+                    "difficulty":"",
+                    "algorithm":"None",
+                    }
+        self.game={
+                    "steps":[
+                    ],
+            "total_steps":0,
+                }
+        #all rounds with same player
+        self.round=[
+            {
+            "round":0,
+            "data":self.game
+            }
+        ]
+
+    #collect every movement
+    def append_step(self,round,board,move,winning_rate=0,difficulty="None",algorithm="None"):
+        if len(self.round)<round+1:
+            self.new_round(round)
+        step={
+                "board":board,
+                "move":move,
+                "ai_winning_rate":winning_rate,
+                "difficulty":difficulty,
+                "algorithm":algorithm,
+                }
+        self.round[round]["data"]["steps"].append(step)
+        return
+
+    #collect every game
+    def append_game(self,round):
+        if len(self.round)<round:
+            self.new_round(round)
+
+        self.round[round]["round"]=round
+        total_steps=len(self.round[round]["data"]["steps"])
+        self.round[round]["data"]["total_steps"]=total_steps
+        return
+
+    #collect every round
+    def new_round(self,round):
+        self.round.append(
+            {
+                "round":round,
+                "data":{
+                    "steps":[
+                    ],
+            "total_steps":0,
+                }
+            })
+        return
+        
+    def load_from_file(self,file_name):
+        with open(file_name) as json_file:
+            data = json.load(json_file)
+        self.round=data
+        return self.round
+
+    def save_to_file(self,file_name):
+        os.makedirs(os.path.dirname(file_name), exist_ok=True)
+        with open("{0}".format(file_name), 'w',encoding='utf-8') as f:
+            json.dump(self.round, f,sort_keys=True, indent=4)
+        return
+
+        
