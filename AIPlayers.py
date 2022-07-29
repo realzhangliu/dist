@@ -109,7 +109,10 @@ class MiniMaxPlayer(Player):
             self.aiinfo.ai_level="DIFFICULTY: HARD"
         self.aiinfo.ai_name="AI PLAYER: {0}".format(self.nick_name)
         self.aiinfo.current_confidence="CONFIDENCE: {0}".format(self.value+24)
-        self.aiinfo.current_movement="MOVEMENT: {0}".format(self.move)
+        if len(self.move)!=0:
+            self.aiinfo.current_movement="MOVEMENT: {0} -> {1}".format(self.move[0],self.move[1])
+        else:
+            self.aiinfo.current_movement="MOVEMENT:"
         self.aiinfo.estimated_win_rate="WINNING RATE: {0:.2f}%".format((self.value+24)/48*100)
         self.aiinfo.process_time="DURATION: {0:.3f}s".format(self.tc)
         return

@@ -204,21 +204,11 @@ TEST_GAME_STATE=[
 
 
 #init game,ai player
-#return game,2player
+#return game,2player22
 def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
 
     global FOCUS_PIECE_GRID_POS,PLAYERLISTS,GAMEPLAYERS,ROUND
 
-    PLAYERLISTS={
-    'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,1,"MINIMAX AI"),
-    "Q":QLaerning(PLAYER1_SYMBOL,1000,"Q-Learning AI"),
-    "MCTS":MCTS(PLAYER1_SYMBOL,1000,"MCTS AI"),
-    "HUMAN":Human(PLAYER2_SYMBOL,True,"YOU")}
-
-    GAMEPLAYERS={
-        PLAYER1_SYMBOL:PLAYERLISTS[P1],
-        PLAYER2_SYMBOL:PLAYERLISTS[P2],
-    }
 
     clock = pygame.time.Clock()
     while True:
@@ -227,9 +217,23 @@ def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
             if event.type == pygame.QUIT:
                 pygame.quit()
                 return
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_ESCAPE:
+                    pygame.quit()
+                    return
 
             if event.type==pygame.KEYDOWN or event.type==pygame.MOUSEBUTTONDOWN:
                 if ROUND>0:
+                    PLAYERLISTS={
+                    'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,1,"MINIMAX AI"),
+                    "Q":QLaerning(PLAYER1_SYMBOL,1000,"Q-Learning AI"),
+                    "MCTS":MCTS(PLAYER1_SYMBOL,1000,"MCTS AI"),
+                    "HUMAN":Human(PLAYER2_SYMBOL,True,"YOU")
+                    }
+                    GAMEPLAYERS={
+                        PLAYER1_SYMBOL:PLAYERLISTS[P1],
+                        PLAYER2_SYMBOL:PLAYERLISTS[P2],
+                    }
                     game=Draughts(PLAYER2_SYMBOL,board)
                     init_piece(game.board)
                     StartGame(game,GAMEPLAYERS)
@@ -244,12 +248,11 @@ def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
             "3. Your opponent is an AI player and try the best to defeat it.",
             "4. You should play {0} round(s) to finish this test.".format(ROUND),
             "5. Follow the tips for further details.",
-            "6. Press any KEY to start"]
+            "6. Press any KEY to starto or ESC to quit."]
         for i in range(len(tutorial_text)):
             t=TUTOR_FONT.render(tutorial_text[i],1,BLACK)
             WIN.blit(t,(WIN.get_rect().centerx-350,50+i*50))
         pygame.display.update()
-
 
 
 #entry
@@ -278,6 +281,9 @@ def StartGame(game,GAMEPLAYERS):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 return
+            if event.type==pygame.KEYDOWN:
+                if event.key==pygame.K_ESCAPE:
+                    return
 
             if event.type==pygame.MOUSEBUTTONDOWN and event.button==1:
                 #human input 
