@@ -35,7 +35,7 @@ class Draughts(Game):
         return blankBorad
         
     
-    def update(self,newstate,move):
+    def update(self,newstate):
         self.current_player= PLAYER1_SYMBOL if self.current_player==PLAYER2_SYMBOL else PLAYER2_SYMBOL
         newstate=self.Crown(newstate)
         self.board=newstate
@@ -51,29 +51,19 @@ class Draughts(Game):
             return False
     
     def getWinner(self,cur):
-        cur=np.array(cur)
+        #no legal movment
+        if len(self.Movement(cur,PLAYER1_SYMBOL))==0:
+            return PLAYER2_SYMBOL
+        if len(self.Movement(cur,PLAYER2_SYMBOL))==0:
+            return PLAYER1_SYMBOL
+        ncur=np.array(cur)
         #A player wins by capturing all of the opponent's pieces 
-        if not (cur==PLAYER1_SYMBOL).any() and not (cur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).any():
+        if not (ncur==PLAYER1_SYMBOL).any() and not (ncur==PLAYER1_SYMBOL+PLAYER1_SYMBOL).any():
             #player 2 won
             return PLAYER2_SYMBOL
-        if not (cur==PLAYER2_SYMBOL).any() and not (cur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).any():
+        if not (ncur==PLAYER2_SYMBOL).any() and not (ncur==PLAYER2_SYMBOL+PLAYER2_SYMBOL).any():
             #player 1 won
             return PLAYER1_SYMBOL
-        # if len(self.repeated_moves_p2)==5:
-        #     if self.repeated_moves_p2[0]==self.repeated_moves_p2[4]:
-        #         return 0
-        # if len(self.repeated_moves_p1)==5:
-        #     if self.repeated_moves_p1[0]==self.repeated_moves_p1[4]:
-        #         return 0
-        #or by leaving the opponent with no legal move
-        # if len(self.Movement(cur,PLAYER1_SYMBOL))>0 and len(self.Movement(cur,PLAYER2_SYMBOL))==0:
-            # return PLAYER1_SYMBOL
-        # if len(self.Movement(cur,PLAYER2_SYMBOL))>0 and len(self.Movement(cur,PLAYER1_SYMBOL))==0:
-            # return PLAYER1_SYMBOL
-        # if len(self.Movement(cur.tolist(),PLAYER1_SYMBOL))==0:
-            # return PLAYER2_SYMBOL
-        # if len(self.Movement(cur.tolist(),PLAYER2_SYMBOL))==0:
-            # return PLAYER1_SYMBOL
         return -1
     
         #emnpty the captured square and move the piece
@@ -231,7 +221,7 @@ class Draughts(Game):
         player1_score=mensPoint+kingsPoint
         
         #favor to becoming a king 
-        for r in range(2,NRow):
+        for r in range(3,NRow):
              player1_score+=(cur[r]==PLAYER1_SYMBOL).sum()*0.5
 
 

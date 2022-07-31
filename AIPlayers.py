@@ -64,9 +64,9 @@ class MiniMaxPlayer(Player):
         self.value=value
         self.move=newPos
         self.tc=time_count
-        self.update_ai_info()
+        self.update_ai_info()   
         #change level
-        if (self.value+24)/48*100<50 and self.initial_depth<5:
+        if (self.value+24)/48*100<50 and self.initial_depth<4:
             self.initial_depth+=1
         return newState,newPos
 

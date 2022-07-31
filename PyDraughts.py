@@ -219,7 +219,7 @@ TEST_GAME_STATE=[
 
 #init game,ai player
 #return game,2player22
-def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
+def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
 
     global FOCUS_PIECE_GRID_POS,PLAYERLISTS,GAMEPLAYERS,ROUND,REVERSE_ROUND,GAME_CURRENT_FUNCTION
 
@@ -299,7 +299,7 @@ def StartGame(game,GAMEPLAYERS,replay_util):
                 if board_move!=None:
                     selected_board=board_move[0]
                     selected_move=board_move[1]
-                    game.update(selected_board,selected_move)
+                    game.update(selected_board)
                     piece_dict_update(game.board)
                     next_possbile_states=None
                     #replay add every step
