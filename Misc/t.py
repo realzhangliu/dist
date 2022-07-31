@@ -1,7 +1,7 @@
 import pygame
 import os
 from GameFramework import *
-from Draughts import *
+from DraughtsGameCore import *
 
 
 pygame.font.init()

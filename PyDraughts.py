@@ -1,13 +1,7 @@
-from glob import glob
-from multiprocessing import connection
-from re import T
-from shutil import move
-from tkinter.messagebox import NO
-from turtle import pos
 import pygame
 import os
 from GameFramework import *
-from Draughts import *
+from DraughtsGameCore import *
 from AIPlayers import *
 from PyDraughtsUtil import *
 import random
@@ -21,7 +15,7 @@ def piece_location(x):
     return x*PIECE_RADIUS+PIECE_RADIUS/2
 
 def update_draw(game):
-    global GAME_CURRENT_FUNCTION
+    global GAME_CURRENT_FUNCTION,REPLAY_INDEX
     WIN.fill(BOARD)
     #board
     for x in range(8):
@@ -107,7 +101,8 @@ def update_draw(game):
             "GAME REPLAY MODE",
             "Review the movements",
             "LEFT MOUSE BUTTON to move forward",
-            "RIGHT MOUSE BUTTON to move back"]
+            "RIGHT MOUSE BUTTON to move back",
+            "CURRENT STEP: {0}".format(REPLAY_INDEX)]
         for i in range(len(replay_text)):
             t=TIP_FONT.render(replay_text[i],1,BLACK)
             WIN.blit(t,(WIN.get_rect().centerx,50+i*50))
@@ -244,7 +239,6 @@ def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
                     PLAYERLISTS={
                     'MINIMAX':MiniMaxPlayer(PLAYER1_SYMBOL,1,"MINIMAX AI"),
                     "Q":QLaerning(PLAYER1_SYMBOL,1000,"Q-Learning AI"),
-                    "MCTS":MCTS(PLAYER1_SYMBOL,1000,"MCTS AI"),
                     "HUMAN":Human(PLAYER2_SYMBOL,True,"YOU")
                     }
                     GAMEPLAYERS={
@@ -266,7 +260,7 @@ def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
                 # dump replay data
                 letters = string.ascii_lowercase
                 id=''.join(random.choice(letters) for i in range(10))
-                REPLAY_UTIL.save_to_file(os.path.join("./data","{0}.json".format(id)))
+                REPLAY_UTIL.save_to_file(os.path.join("./Data","{0}.json".format(id)))
                 pygame.quit()
                 return
 
@@ -348,11 +342,12 @@ def StartGame(game,GAMEPLAYERS,replay_util):
         pygame.display.flip()
 
 def StartReplay(round):
+    global REPLAY_INDEX
     run=True
     game=Draughts(PLAYER2_SYMBOL)
     games,len_steps=REPLAY_UTIL.get_this_round_games(round)
-    index=0
-    piece_dict_update(games[index])
+    REPLAY_INDEX=0
+    piece_dict_update(games[REPLAY_INDEX])
     while run:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -360,18 +355,18 @@ def StartReplay(round):
 
             if event.type==pygame.MOUSEBUTTONDOWN:
                 if event.button==1:
-                    if index==len_steps-1:
+                    if REPLAY_INDEX==len_steps-1:
                         return
 
-                    if index<len_steps-1:
-                        index+=1
-                    piece_dict_update(games[index])
+                    if REPLAY_INDEX<len_steps-1:
+                        REPLAY_INDEX+=1
+                    piece_dict_update(games[REPLAY_INDEX])
 
 
                 if event.button==3:
-                    if index>0:
-                        index-=1
-                    piece_dict_update(games[index])
+                    if REPLAY_INDEX>0:
+                        REPLAY_INDEX-=1
+                    piece_dict_update(games[REPLAY_INDEX])
 
         update_draw(game)
         pygame.display.update()

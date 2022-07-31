@@ -1,6 +1,5 @@
 from GameFramework import Game
 import numpy as np
-from PyDraughtsUtil import *
 import copy
 
 PLAYER1_SYMBOL='1'

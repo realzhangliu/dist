@@ -1,7 +1,7 @@
 from time import clock_getres
 from webbrowser import get
 import pygame
-from Draughts import WHITE_SQUARE
+from DraughtsGameCore import WHITE_SQUARE
 
 from PyDraughts import BLACK, GREY
 

@@ -1,9 +1,48 @@
-from turtle import pos
 from GameFramework import Player
-from Draughts import *
+from DraughtsGameCore import *
 import math
-from PyDraughtsUtil import *
 import time
+
+
+class AIHELP:
+    def __init__(self,player) -> None:
+        self.ai_name=""
+        self.ai_name_desc="(player name)"
+        self.ai_algorithm=""
+        self.ai_algorithm_desc="(algorithm AI used)"
+        self.ai_algorithm_config=""
+        self.ai_algorithm_config_desc="(algorithm configuration)"
+        self.process_time=""
+        self.process_time_desc="(the time every step takes)"
+        self.ai_level=""
+        self.ai_level_desc="(easy|medium|hard),AI will change difficulty according to player level"
+        self.estimated_win_rate=""
+        self.estimated_win_rate_desc="(percentage of win rate of AI)"
+        self.current_confidence=""
+        self.current_confidence_desc="(score AI estimated for current decision)"
+        self.current_movement=""
+        self.current_movement_desc="(movement locations)"
+
+    def get_info_text(self):
+        return [
+        self.ai_name,
+        self.ai_name_desc,
+        self.ai_algorithm,
+        self.ai_algorithm_desc,
+        self.ai_algorithm_config,
+        self.ai_algorithm_config_desc,
+        self.process_time,
+        self.process_time_desc,
+        self.ai_level,
+        self.ai_level_desc,
+        self.estimated_win_rate,
+        self.estimated_win_rate_desc,
+        self.current_confidence,
+        self.current_confidence_desc,
+        self.current_movement,
+        self.current_movement_desc,
+        ]
+
 
 class MiniMaxPlayer(Player):
     def __init__(self, piece, initial_depth,nick_name):
@@ -121,38 +160,6 @@ class MiniMaxPlayer(Player):
 
 
 class QLaerning(Player):
-    def __init__(self, piece, max_epoch,nick_name):
-        super().__init__(piece,False,nick_name)
-        self.max_epoch = max(1, max_epoch)
-        self.g=None
-    
-    def chooseMove(self, game,possible_states):
-        self.g=game
-        # bestValue, bestMove = self.alphabeta(game, self.initial_depth, -self.INFINITY, self.INFINITY)
-        newState,newPos=self.BestAction(self.g.board)
-        return newState,newPos
-
-    #alpha beta algorithm implementation
-    def BestAction(self,curState):
-        maxValue=-24
-        newState=None
-        newPos=[]
-        #vv list contains multiple different game baords after AI agent taking various actions, then evaluate.
-        vv=self.g.Movement(curState,self.player_piece)
-        for v in vv:
-            #splite the board and postion detail that Ai agent took.
-            pos=v[NRow]
-            #game board state
-            v=v[:NRow]
-            val=self.MinValue(v,-math.inf,math.inf,self.initial_depth)
-            if val>maxValue:
-                maxValue=val
-                newState=v
-                newPos=pos[:]
-        return newState,newPos
-
-
-class MCTS(Player):
     def __init__(self, piece, max_epoch,nick_name):
         super().__init__(piece,False,nick_name)
         self.max_epoch = max(1, max_epoch)

@@ -1,4 +1,3 @@
-import re
 import pygame
 import os
 
@@ -28,12 +27,18 @@ GREY=(90,90,90)
 SQUARE_SIZE=50
 PIECE_RADIUS=50
 
+#total game round
 ROUND=3
 REVERSE_ROUND=0
-#0=normal 1=game replay
+
+#0= normal 1= game replay
 GAME_CURRENT_FUNCTION=0
-# specify the index of round that enable AI HELP
+
+# which round has AI help 
 ENABLE_AI_HELP=[2]
+
+#game repaly index
+REPLAY_INDEX=0
 
 WHITE_SQUARE_RECT=pygame.Rect(0,0,50,50)
 
@@ -72,77 +77,6 @@ FOCUS_PIECE_GRID_POS=()
 GAMEPLAYERS=None
 PLAYERLISTS=None
 
-
-
-class AIHELP:
-    def __init__(self,player) -> None:
-        self.ai_name=""
-        self.ai_name_desc="(player name)"
-        self.ai_algorithm=""
-        self.ai_algorithm_desc="(algorithm AI used)"
-        self.ai_algorithm_config=""
-        self.ai_algorithm_config_desc="(algorithm configuration)"
-        self.process_time=""
-        self.process_time_desc="(the time every step takes)"
-        self.ai_level=""
-        self.ai_level_desc="(easy|medium|hard),AI will change difficulty according to player level"
-        self.estimated_win_rate=""
-        self.estimated_win_rate_desc="(percentage of win rate of AI)"
-        self.current_confidence=""
-        self.current_confidence_desc="(score AI estimated for current decision)"
-        self.current_movement=""
-        self.current_movement_desc="(movement locations)"
-    def get_info(self):
-        info=[
-            TIP_FONT.render(self.ai_name,1,BLACK),
-            BOARD_MARK_FONT.render(self.ai_name_desc,1,BLACK),
-            
-            TIP_FONT.render(self.ai_algorithm,1,BLACK),
-            BOARD_MARK_FONT.render(self.ai_algorithm_desc,1,BLACK),
-
-            TIP_FONT.render(self.ai_algorithm_config,1,BLACK),
-            BOARD_MARK_FONT.render(self.ai_algorithm_config_desc,1,BLACK),
-
-            TIP_FONT.render(self.process_time,1,BLACK),
-            BOARD_MARK_FONT.render(self.process_time_desc,1,BLACK),
-
-            TIP_FONT.render(self.ai_level,1,BLACK),
-            BOARD_MARK_FONT.render(self.ai_level_desc,1,BLACK),    
-
-            TIP_FONT.render(self.estimated_win_rate,1,BLACK),
-            BOARD_MARK_FONT.render(self.estimated_win_rate_desc,1,BLACK),
-
-            TIP_FONT.render(self.current_confidence,1,BLACK),
-            BOARD_MARK_FONT.render(self.current_confidence_desc,1,BLACK),
-
-            TIP_FONT.render(self.current_movement,1,BLACK),
-            BOARD_MARK_FONT.render(self.current_movement_desc,1,BLACK),
-
-            TIP_FONT.render(self.current_round,1,BLACK),
-            BOARD_MARK_FONT.render(self.current_round_desc,1,BLACK),
-        ]
-        return info
-    
-
-    def get_info_text(self):
-        return [
-        self.ai_name,
-        self.ai_name_desc,
-        self.ai_algorithm,
-        self.ai_algorithm_desc,
-        self.ai_algorithm_config,
-        self.ai_algorithm_config_desc,
-        self.process_time,
-        self.process_time_desc,
-        self.ai_level,
-        self.ai_level_desc,
-        self.estimated_win_rate,
-        self.estimated_win_rate_desc,
-        self.current_confidence,
-        self.current_confidence_desc,
-        self.current_movement,
-        self.current_movement_desc,
-        ]
 
 import json
 #game replay
