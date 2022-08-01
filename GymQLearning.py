@@ -1,8 +1,7 @@
-import re
 from DraughtsGameCore import *
 from AIPlayers import *
 from gym import Env
-from gym.spaces import Discrete, Box,Dict,MultiDiscrete
+from gym.spaces import Discrete,Dict
 import numpy as np
 import random
 
@@ -98,8 +97,6 @@ class ShowerEnv(Env):
         self.game=Draughts(PLAYER2_SYMBOL)
         #all possible game state with movement
         self.possible_states=self.game.Movement(self.game.board,self.game.current_player)[:NRow]
-        # Actions we can take, down, stay, up
-        # self.action_space = Dict({"position": Discrete(2), "velocity": Discrete(3)})
         self.action_space = Discrete(len(self.possible_states))
         # Temperature array
         self.board_ID=BoardToStr(self.game.board)
@@ -110,11 +107,12 @@ class ShowerEnv(Env):
     
 
 env = ShowerEnv()
-print(env.observation_space.sample())
 
-
-episodes = 10
-for episode in range(1, episodes+1):
+episodes = 5
+winner=[]
+episode=[]
+player2_reward=[]
+for e in range(1, episodes+1):
     state = env.reset()
     done = False
     score = 0 
@@ -124,4 +122,119 @@ for episode in range(1, episodes+1):
         action = env.action_space.sample()
         n_state, reward, done, info = env.step(action)
         score+=reward
-    print('Episode:{} Score:{} {}'.format(episode, score,info))
+    print('Episode:{} Score:{} {}'.format(e, score,info))
+
+    episode.append(e)
+    winner.append(info["winner"])
+    player2_reward.append(score)
+
+print(episode)
+print(winner)
+print(player2_reward)
+
+
+
+
+alpha = 0.1
+gamma = 0.6
+epsilon = 0.5
+q_table = {}
+
+num_of_episodes = 1000
+
+def updateQtable(state,action,reward):
+    if state not in q_table.keys():
+        q_table[state]={}
+    
+    if action not in q_table[state]:
+        q_table[state][action]=reward
+        return
+
+    q_table[state][action]=reward
+    return
+    
+def getMaxQtableValue(state):
+    if state not in q_table.keys():
+        return 0
+
+    valueList=list(q_table[state].values())
+    maxIndex=np.argmax(valueList)
+    action=list(q_table[state].keys())[maxIndex]
+    
+    return action
+
+def getQtableValue(state,action):
+    if state not in q_table.keys():
+        return 0
+    if action not in q_table[state]:
+        return 0
+    v=q_table[state][action]
+    return v
+
+s_time=time.time()
+for episode in range(0, num_of_episodes):
+    # Reset the enviroment
+    state = env.reset()
+
+    # Initialize variables
+    reward = 0
+    done = False
+    
+    
+    while not done:
+        # Take learned path or explore new actions based on the epsilon
+        if random.uniform(0, 1) < epsilon:
+            action = env.action_space.sample()
+        else:
+            action = getMaxQtableValue(state)
+
+        # Take action    
+        next_state, reward, done, info = env.step(action) 
+        
+        # Recalculate
+        q_value = getQtableValue(state,action)
+        max_value = getMaxQtableValue(state)
+        new_q_value = (1 - alpha) * q_value + alpha * (reward + gamma * max_value)
+        
+        # Update Q-table
+        # q_table[state, action] = new_q_value
+        updateQtable(state,action,new_q_value)
+        state = next_state
+    if (episode + 1) % 100 == 0:
+        print("Episode: {} duration: {:.3f}".format(episode + 1,time.time()-s_time))
+        s_time=time.time()
+
+print("**********************************")
+print("Training is done!\n")
+print("**********************************")
+
+
+total_epochs = 0
+total_penalties = 0
+num_of_episodes = 100
+
+for _ in range(num_of_episodes):
+    state = env.reset()
+    epochs = 0
+    penalties = 0
+    reward = 0
+    
+    done = False
+    
+    while not done:
+        action = getMaxQtableValue(state)
+        state, reward, done, info = env.step(action)
+
+        if reward < 0:
+            penalties += 1
+
+        epochs += 1
+
+    total_penalties += penalties
+    total_epochs += epochs
+
+print("**********************************")
+print("Results")
+print("**********************************")
+print("Epochs per episode: {}".format(total_epochs / num_of_episodes))
+print("Penalties per episode: {}".format(total_penalties / num_of_episodes))

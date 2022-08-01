@@ -35,7 +35,7 @@ REVERSE_ROUND=0
 GAME_CURRENT_FUNCTION=0
 
 # which round has AI help 
-ENABLE_AI_HELP=[2]
+ENABLE_AI_HELP=[1]
 
 #game repaly index
 REPLAY_INDEX=0
