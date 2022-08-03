@@ -53,6 +53,8 @@ class MiniMaxPlayer(Player):
         self.value=-24
         self.move=[]
         self.tc=0
+        self.win_rate=50
+        self.algorithm="MiniMax"
         self.update_ai_info()
 
     def chooseMove(self, game,possible_states):
@@ -66,7 +68,7 @@ class MiniMaxPlayer(Player):
         self.tc=time_count
         self.update_ai_info()   
         #change level
-        if (self.value+24)/48*100<50 and self.initial_depth<4:
+        if (self.value+24)/48*100<50 and self.initial_depth<3:
             self.initial_depth+=1
         return newState,newPos
 
@@ -74,7 +76,7 @@ class MiniMaxPlayer(Player):
     def MinimaxDecision(self,possible_states):
         s_time=time.time()
         maxValue=-24
-        newState=None
+        newState=possible_states[0][:NRow]
         newPos=[]
         #vv list contains multiple different game baords after AI agent taking various actions, then evaluate.
         for v in possible_states:
@@ -140,11 +142,11 @@ class MiniMaxPlayer(Player):
     def update_ai_info(self):
         self.aiinfo.ai_algorithm="ALGORITHM: MiniMax"
         self.aiinfo.ai_algorithm_config="DEPTH: {0}".format(self.initial_depth)
-        if self.initial_depth<=2:
+        if self.initial_depth<=1:
             self.aiinfo.ai_level="DIFFICULTY: ESAY"
-        if self.initial_depth>2 and self.initial_depth<=4:
+        if self.initial_depth>=2 and self.initial_depth<3:
             self.aiinfo.ai_level="DIFFICULTY: MEDIUM"
-        if self.initial_depth>4:
+        if self.initial_depth>=3:
             self.aiinfo.ai_level="DIFFICULTY: HARD"
         self.aiinfo.ai_name="AI PLAYER: {0}".format(self.nick_name)
         self.aiinfo.current_confidence="CONFIDENCE: {0}".format(self.value+24)
@@ -152,7 +154,8 @@ class MiniMaxPlayer(Player):
             self.aiinfo.current_movement="MOVEMENT: {0} -> {1}".format(self.move[0],self.move[1])
         else:
             self.aiinfo.current_movement="MOVEMENT:"
-        self.aiinfo.estimated_win_rate="WINNING RATE: {0:.2f}%".format((self.value+24)/48*100)
+        self.aiinfo.estimated_win_rate="WIN RATE: {0:.2f}%".format((self.value+24)/48*100)
+        self.win_rate=(self.value+24)/48*100
         self.aiinfo.process_time="DURATION: {0:.3f}s".format(self.tc)
         return
     def get_ai_help(self):
@@ -194,6 +197,9 @@ class Human(Player):
     def __init__(self, piece,isHuman,nick_name):
         super().__init__(piece,isHuman,nick_name)
         self.g=None
+        self.win_rate=None
+        self.initial_depth=None
+        self.algorithm=None
     def chooseMove(self, game,possible_states):
         self.g=game
         if self.from_pos_input==() or self.to_pose_input==():

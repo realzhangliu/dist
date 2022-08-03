@@ -110,7 +110,6 @@ def update_draw(game):
     return
 
 def draw_mouse(mouse_pos):
-    return
     txt="x:{0},y={1}".format(mouse_pos[0],mouse_pos[1])
     draw_mouse_pos_text=HEALTH_FONT.render(txt,1,BLACK)
     WIN.blit(draw_mouse_pos_text,mouse_pos)
@@ -283,11 +282,13 @@ def StartGame(game,GAMEPLAYERS,replay_util):
     clock = pygame.time.Clock()
     next_possbile_states=None
 
-    replay_util.append_step(REVERSE_ROUND,game.board,[])
+    player=GAMEPLAYERS[game.current_player]
+    replay_util.append_step(REVERSE_ROUND,game.board,[],player.win_rate,player.initial_depth,player.algorithm)
 
     while True:
         clock.tick(FPS)
         player=GAMEPLAYERS[game.current_player]
+
         if not game.isGameOver():
             #generated all possible movements
             if next_possbile_states == None:
@@ -303,7 +304,7 @@ def StartGame(game,GAMEPLAYERS,replay_util):
                     piece_dict_update(game.board)
                     next_possbile_states=None
                     #replay add every step
-                    replay_util.append_step(REVERSE_ROUND,selected_board,selected_move)
+                    replay_util.append_step(REVERSE_ROUND,selected_board,selected_move,player.win_rate,player.initial_depth,player.algorithm)
 
         #EVENTS
         for event in pygame.event.get():
@@ -338,7 +339,7 @@ def StartGame(game,GAMEPLAYERS,replay_util):
 
         #Drawing
         update_draw(game)
-        draw_mouse(pygame.mouse.get_pos())                            
+        # draw_mouse(pygame.mouse.get_pos())                            
         pygame.display.flip()
 
 def StartReplay(round):

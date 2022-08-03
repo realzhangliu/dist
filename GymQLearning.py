@@ -28,7 +28,8 @@ def StrToBoard(str):
     return blankBorad
                 
             
-
+RANDOM_PLAYER=True
+#randon player
 class ShowerEnv(Env):
     def __init__(self):
         #init game
@@ -43,6 +44,7 @@ class ShowerEnv(Env):
         self.observation_space = Dict({self.board_ID:Discrete(1)})
         # Set start temp
         self.state = self.board_ID
+        self.player=MiniMaxPlayer(PLAYER1_SYMBOL,1,"MINIMAX AI")
         
     def step(self, action):
         # Apply action
@@ -59,10 +61,17 @@ class ShowerEnv(Env):
         else:
             done=False
         
-        #opponent play action randomly
+
         possible_states=self.game.Movement(self.game.board,PLAYER1_SYMBOL)
-        player1_action_index=random.randint(0,len(possible_states)-1)
-        player1_selected_board=possible_states[player1_action_index][:NRow]
+        #opponent player 1
+        if RANDOM_PLAYER:
+            player1_action_index=random.randint(0,len(possible_states)-1)
+            player1_selected_board=possible_states[player1_action_index][:NRow]
+        else:
+            # Minimax player 1
+            board_move=self.player.chooseMove(self.game,possible_states)
+            player1_selected_board=board_move[0]
+
         self.game.update(player1_selected_board)
         self.state = BoardToStr(player1_selected_board)
 
@@ -108,36 +117,36 @@ class ShowerEnv(Env):
 
 env = ShowerEnv()
 
-episodes = 5
-winner=[]
-episode=[]
-player2_reward=[]
-for e in range(1, episodes+1):
-    state = env.reset()
-    done = False
-    score = 0 
+# episodes = 100
+# winner=[]
+# episode=[]
+# player2_reward=[]
+# for e in range(1, episodes+1):
+#     state = env.reset()
+#     done = False
+#     score = 0 
     
-    while not done:
-        #env.render()
-        action = env.action_space.sample()
-        n_state, reward, done, info = env.step(action)
-        score+=reward
-    print('Episode:{} Score:{} {}'.format(e, score,info))
+#     while not done:
+#         #env.render()
+#         action = env.action_space.sample()
+#         n_state, reward, done, info = env.step(action)
+#         score+=reward
+#     print('Episode:{} Score:{} {}'.format(e, score,info))
 
-    episode.append(e)
-    winner.append(info["winner"])
-    player2_reward.append(score)
+#     episode.append(e)
+#     winner.append(info["winner"])
+#     player2_reward.append(score)
 
-print(episode)
-print(winner)
-print(player2_reward)
-
-
+# print(episode)
+# print(winner)
+# print(player2_reward)
 
 
+
+# Q-learning training with random player
 alpha = 0.1
 gamma = 0.6
-epsilon = 0.5
+epsilon = 0.2
 q_table = {}
 
 num_of_episodes = 1000
@@ -205,15 +214,22 @@ for episode in range(0, num_of_episodes):
         s_time=time.time()
 
 print("**********************************")
-print("Training is done!\n")
+print("{} episodes Q-Learning Training is done!\n".format(num_of_episodes))
 print("**********************************")
 
 
-total_epochs = 0
-total_penalties = 0
-num_of_episodes = 100
 
-for _ in range(num_of_episodes):
+#Minimax Player (player 1) versus Q-Learning player (player 2)
+RANDOM_PLAYER=False
+
+total_epochs = 0
+num_of_episodes = 5
+
+winner=[]
+episode=[]
+player2_reward=[]
+
+for e in range(num_of_episodes):
     state = env.reset()
     epochs = 0
     penalties = 0
@@ -225,16 +241,10 @@ for _ in range(num_of_episodes):
         action = getMaxQtableValue(state)
         state, reward, done, info = env.step(action)
 
-        if reward < 0:
-            penalties += 1
-
-        epochs += 1
-
-    total_penalties += penalties
-    total_epochs += epochs
+    episode.append(e)
+    winner.append(int(info["winner"]))
+    player2_reward.append(reward)
 
 print("**********************************")
-print("Results")
+print("Minimax Player (player 1) versus Q-Learning player (player 2)")
 print("**********************************")
-print("Epochs per episode: {}".format(total_epochs / num_of_episodes))
-print("Penalties per episode: {}".format(total_penalties / num_of_episodes))

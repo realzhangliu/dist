@@ -5,7 +5,7 @@ WIDTH, HEIGHT = 800, 400
 
 pygame.init()
 pygame.font.init()
-pygame.display.set_caption("Draughts with AI")
+pygame.display.set_caption("Draughts with AI Coach")
 FPS = 60
 
 HEALTH_FONT = pygame.font.SysFont('comicsans', 12)
@@ -111,7 +111,7 @@ class ReplayUtil:
         return board,len(board)
 
     #collect every movement
-    def append_step(self,round,board,move,winning_rate=0,difficulty="None",algorithm="None"):
+    def append_step(self,round,board,move,winning_rate=0,difficulty=1,algorithm="None"):
         if len(self.round)<round+1:
             self.new_round(round)
         step={
