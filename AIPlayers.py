@@ -68,8 +68,10 @@ class MiniMaxPlayer(Player):
         self.tc=time_count
         self.update_ai_info()   
         #change level
-        if (self.value+24)/48*100<50 and self.initial_depth<3:
+        if self.win_rate and self.initial_depth<2:
             self.initial_depth+=1
+        if self.win_rate>60 and self.initial_depth>=3:
+            self.initial_depth-=1
         return newState,newPos
 
     #alpha beta algorithm implementation

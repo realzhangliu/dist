@@ -206,7 +206,7 @@ def piece_focused(player,k,all_possible_moves):
 
 #EXAMPLES
 TEST_GAME_STATE=[
-    ['_', '0', '_', '0', '_', '0', '_', '0'],
+    ['_', '0', '_', '1', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
     ['_', '1', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '2', '_', '0', '_', '0', '_'],
@@ -218,7 +218,7 @@ TEST_GAME_STATE=[
 
 #init game,ai player
 #return game,2player22
-def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
+def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
 
     global FOCUS_PIECE_GRID_POS,PLAYERLISTS,GAMEPLAYERS,ROUND,REVERSE_ROUND,GAME_CURRENT_FUNCTION
 
@@ -283,7 +283,8 @@ def StartGame(game,GAMEPLAYERS,replay_util):
     next_possbile_states=None
 
     player=GAMEPLAYERS[game.current_player]
-    replay_util.append_step(REVERSE_ROUND,game.board,[],player.win_rate,player.initial_depth,player.algorithm)
+    replay_util.append_step(REVERSE_ROUND,game.board,[],
+    player.win_rate,player.initial_depth,player.algorithm,"-1")
 
     while True:
         clock.tick(FPS)
@@ -304,7 +305,8 @@ def StartGame(game,GAMEPLAYERS,replay_util):
                     piece_dict_update(game.board)
                     next_possbile_states=None
                     #replay add every step
-                    replay_util.append_step(REVERSE_ROUND,selected_board,selected_move,player.win_rate,player.initial_depth,player.algorithm)
+                    replay_util.append_step(REVERSE_ROUND,selected_board,selected_move,
+                    player.win_rate,player.initial_depth,player.algorithm,player.player_piece)
 
         #EVENTS
         for event in pygame.event.get():

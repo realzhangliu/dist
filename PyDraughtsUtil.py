@@ -28,7 +28,7 @@ SQUARE_SIZE=50
 PIECE_RADIUS=50
 
 #total game round
-ROUND=3
+ROUND=1
 REVERSE_ROUND=0
 
 #0= normal 1= game replay
@@ -90,6 +90,7 @@ class ReplayUtil:
                     "ai_winning_rate":0,
                     "difficulty":"",
                     "algorithm":"None",
+                    "player":0
                     }
         self.game={
                     "steps":[
@@ -111,7 +112,7 @@ class ReplayUtil:
         return board,len(board)
 
     #collect every movement
-    def append_step(self,round,board,move,winning_rate=0,difficulty=1,algorithm="None"):
+    def append_step(self,round,board,move,winning_rate=0,difficulty=1,algorithm="None",player_picec=-1):
         if len(self.round)<round+1:
             self.new_round(round)
         step={
@@ -120,18 +121,20 @@ class ReplayUtil:
                 "ai_winning_rate":winning_rate,
                 "difficulty":difficulty,
                 "algorithm":algorithm,
+                "player":player_picec
                 }
         self.round[round]["data"]["steps"].append(step)
         return
 
     #collect every game
-    def append_game(self,round):
+    def append_game(self,round,winner):
         if len(self.round)<round:
             self.new_round(round)
 
         self.round[round]["round"]=round
         total_steps=len(self.round[round]["data"]["steps"])
         self.round[round]["data"]["total_steps"]=total_steps
+        self.round[round]["data"]["winner"]=winner
         return
 
     #collect every round
@@ -143,6 +146,7 @@ class ReplayUtil:
                     "steps":[
                     ],
             "total_steps":0,
+            "winner":""
                 }
             })
         return
