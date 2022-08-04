@@ -4,6 +4,8 @@
 
 The aim of this project is to create an AI that plays a game not to win but to give the human player a rewarding challenge, playing in the manner of a good teacher or parent. 
 
+![image](https://github.com/realzhangliu/dist/blob/master/screenshot.png)
+
 ## Content 
 
 `PyDrauhts.py` is game entry for conduncting the test and collect the data for analysis.
