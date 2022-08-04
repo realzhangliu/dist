@@ -1,6 +1,11 @@
 import pygame
 import os
 
+##
+#configuration for pygame render
+#game essential util tools
+##
+
 WIDTH, HEIGHT = 800, 400
 
 pygame.init()
@@ -28,14 +33,14 @@ SQUARE_SIZE=50
 PIECE_RADIUS=50
 
 #total game round
-ROUND=1
+ROUND=6
 REVERSE_ROUND=0
 
 #0= normal 1= game replay
 GAME_CURRENT_FUNCTION=0
 
 # which round has AI help 
-ENABLE_AI_HELP=[1]
+ENABLE_AI_HELP=[3,4]
 
 #game repaly index
 REPLAY_INDEX=0

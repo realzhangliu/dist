@@ -7,6 +7,12 @@ from PyDraughtsUtil import *
 import random
 import string
 
+##
+#game entry
+#only for game render using pygame framework
+#game core is imported as third packge
+##
+
 #game utils
 def location(x):
     return  x*SQUARE_SIZE
@@ -206,10 +212,10 @@ def piece_focused(player,k,all_possible_moves):
 
 #EXAMPLES
 TEST_GAME_STATE=[
-    ['_', '0', '_', '1', '_', '0', '_', '0'],
+    ['_', '11', '_', '', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
     ['_', '1', '_', '0', '_', '0', '_', '0'],
-    ['0', '_', '2', '_', '0', '_', '0', '_'],
+    ['0', '_', '22', '_', '0', '_', '0', '_'],
     ['_', '0', '_', '0', '_', '0', '_', '0'],
     ['0', '_', '0', '_', '0', '_', '0', '_'],
     ['_', '0', '_', '0', '_', '0', '_', '0'],
@@ -218,7 +224,7 @@ TEST_GAME_STATE=[
 
 #init game,ai player
 #return game,2player22
-def load_config(board=TEST_GAME_STATE,P1="MINIMAX",P2="HUMAN"):
+def load_config(board=None,P1="MINIMAX",P2="HUMAN"):
 
     global FOCUS_PIECE_GRID_POS,PLAYERLISTS,GAMEPLAYERS,ROUND,REVERSE_ROUND,GAME_CURRENT_FUNCTION
 
@@ -335,7 +341,7 @@ def StartGame(game,GAMEPLAYERS,replay_util):
 
             if (event.type==pygame.KEYDOWN or event.type==pygame.MOUSEBUTTONDOWN) and game.isOver:
                 #replay add this game
-                replay_util.append_game(REVERSE_ROUND)
+                replay_util.append_game(REVERSE_ROUND,game.winner)
                 return
             print(event)
 
