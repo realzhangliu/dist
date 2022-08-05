@@ -63,7 +63,7 @@ class MiniMaxPlayer(Player):
             raise ValueError('Wrong current player round.')
         # bestValue, bestMove = self.alphabeta(game, self.initial_depth, -self.INFINITY, self.INFINITY)
         newState,newPos,value,time_count=self.MinimaxDecision(possible_states)
-        self.value=value
+        self.value=self.g.evalState(newState)
         self.move=newPos
         self.tc=time_count
         self.update_ai_info()   
