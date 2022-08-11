@@ -22,6 +22,12 @@ The aim of this project is to create an AI that plays a game not to win but to g
 
 `GameDataAnalysis.ipynb` analysis of data from `PyDraughts.py`
 
+## How to run the game 
+    
+    pip3 install pygame numpy
+    python3 PyDraughts.py
+    
+
 ## How to run as order by dissertation
 
 1. get and analysis the result from algorithms' competition by running `GymQLearning.ipynb`
